@@ -33,6 +33,7 @@ Prototype of wropasi developed with just nodejs, for prototype development, ther
 wropasi, licensed with GPL-3.0 License. Chec the LICENSE file for more information.
 
 Icons that used on logo:
+
 [Question icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/question "question icons")
 
 [Alert icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/alert "alert icons")
