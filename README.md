@@ -1,3 +1,5 @@
+![wropasi-logo](wropasi%20logo.png)
+
 # wropasi (wrong package silly)
 
 > wropasi still in development and only have a prototype that developed with node.js. The software will going to develop with Python + GTK4 in stable release.
@@ -29,3 +31,8 @@ Prototype of wropasi developed with just nodejs, for prototype development, ther
 ## License
 
 wropasi, licensed with GPL-3.0 License. Chec the LICENSE file for more information.
+
+Icons that used on logo:
+[Question icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/question "question icons")
+[Alert icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/alert "alert icons")
+[Road signs icons created by Jesus Chavarria - Flaticon](https://www.flaticon.com/free-icons/road-signs "road signs icons")
