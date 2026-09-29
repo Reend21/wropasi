@@ -1,4 +1,4 @@
-![wropasi-logo](wropasi%20logo.png)
+<img src="wropasi logo.png" alt="wropasilogo" width="256" height="256"/>
 
 # wropasi (wrong package silly)
 
@@ -34,5 +34,7 @@ wropasi, licensed with GPL-3.0 License. Chec the LICENSE file for more informati
 
 Icons that used on logo:
 [Question icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/question "question icons")
+
 [Alert icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/alert "alert icons")
+
 [Road signs icons created by Jesus Chavarria - Flaticon](https://www.flaticon.com/free-icons/road-signs "road signs icons")
