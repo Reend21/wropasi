@@ -1,6 +1,6 @@
 <a href="./README/readmeTr.md">README in TR</a>
 <br>
-<img src="wropasi logo.png" alt="wropasilogo" width="256" height="256"/>
+<img src="wropasi-logo.png" alt="wropasilogo" width="256" height="256"/>
 
 # wropasi (wrong package silly)
 
