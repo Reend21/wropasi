@@ -24,7 +24,7 @@ And the **Guide the User** method solves that. After the text and symbolic image
 
 ## Screenshots
 
-Placeholder, no screenshots or gifs yet.
+<img src="prototype.gif" alt="prototype" width="1366" height="768"/>
 
 ## Development
 
