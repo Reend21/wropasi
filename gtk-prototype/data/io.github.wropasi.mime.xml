@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+
+  <mime-type type="application/vnd.flatpak">
+    <comment>Flatpak Application Bundle</comment>
+    <comment xml:lang="tr">Flatpak Uygulama Paketi</comment>
+    <acronym>Flatpak</acronym>
+    <glob pattern="*.flatpak"/>
+  </mime-type>
+
+  <!-- AppImage (.AppImage / .appimage) 
+      Freedesktop'ta birden fazla tip önerilmiş (x-iso9660-appimage vb.), resmi konsensüs application/vnd.appimage üzerine yaklaşıyor. Her iki glob da eklenmiştir.
+  -->
+  <mime-type type="application/vnd.appimage">
+    <comment>AppImage Application Bundle</comment>
+    <comment xml:lang="tr">AppImage Uygulama Paketi</comment>
+    <acronym>AppImage</acronym>
+    <glob pattern="*.AppImage"/>
+    <glob pattern="*.appimage"/>
+    <magic priority="60">
+      <match type="string" offset="8" value="AI\x02"/>
+    </magic>
+  </mime-type>
+
+</mime-info>
