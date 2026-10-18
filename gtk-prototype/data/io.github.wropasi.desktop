@@ -2,7 +2,7 @@
 Name=wropasi
 Comment=Wrong Package Silly! wropasi solves an UX problem about package management in modern distros
 Exec=/usr/bin/wropasi %f
-Icon=/wropasi/wropasi-logo.png
+Icon=io.github.wropasi
 Terminal=false
 NoDisplay=true
 Type=Application

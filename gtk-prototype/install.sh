@@ -22,6 +22,7 @@ if [[ "${1:-}" == "--uninstall" ]]; then
     echo "→ wropasi kaldırılıyor..."
     rm -f  "$PREFIX/bin/wropasi"
     rm -f  "$PREFIX/share/applications/io.github.wropasi.desktop"
+    rm -f  "$PREFIX/share/icons/hicolor/256x256/apps/io.github.wropasi.png"
     rm -f  "$PREFIX/share/mime/packages/io.github.wropasi.mime.xml"
     update-desktop-database "$PREFIX/share/applications" 2>/dev/null || true
     update-mime-database    "$PREFIX/share/mime"         2>/dev/null || true
@@ -34,6 +35,10 @@ echo "→ wropasi kuruluyor → $PREFIX"
 
 # Çalıştırılabilir
 install -Dm755 "$SCRIPT_DIR/src/wropasi.py" "$PREFIX/bin/wropasi"
+
+# İkon
+install -Dm644 "$SCRIPT_DIR/../wropasi-logo.png" \
+            "$PREFIX/share/icons/hicolor/256x256/apps/io.github.wropasi.png"
 
 # Desktop dosyası
 install -Dm644 "$SCRIPT_DIR/data/io.github.wropasi.desktop" \
