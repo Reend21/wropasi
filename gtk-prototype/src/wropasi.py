@@ -7,11 +7,151 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw
 import sys
 import os
+import json
 import shutil
 import subprocess
 import urllib.parse
+from pathlib import Path
+from textwrap import dedent
 
 APP_ID = "io.github.wropasi"
+
+# ── Desktop Integration (geliştirme / test kurulumu) ─────────────────────────
+# .deb/.rpm paketlerinde bu fonksiyonlar KULLANILMAZ; paket yöneticisi
+# dosyaları doğrudan /usr/share altına yerleştirir.  Bu sadece install.sh
+# yerine "wropasi --install" ile yerel kurulum yapmak isteyenler içindir.
+
+DESKTOP_ENTRY = dedent("""\
+    [Desktop Entry]
+    Name=wropasi
+    Comment=Wrong Package Silly! wropasi solves an UX problem about package management in modern distros
+    Exec={exec_path} %f
+    Icon={icon_name}
+    Terminal=false
+    NoDisplay=true
+    Type=Application
+    Categories=System;PackageManager;Settings;
+    Keywords=package;install;deb;rpm;flatpak;snap;appimage;paket;
+    MimeType=application/vnd.debian.binary-package;application/x-rpm;application/vnd.snap;application/vnd.flatpak;application/vnd.appimage;
+""")
+
+MIME_XML = dedent("""\
+    <?xml version="1.0" encoding="UTF-8"?>
+    <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
+
+      <mime-type type="application/vnd.flatpak">
+        <comment>Flatpak Application Bundle</comment>
+        <comment xml:lang="tr">Flatpak Uygulama Paketi</comment>
+        <acronym>Flatpak</acronym>
+        <glob pattern="*.flatpak"/>
+      </mime-type>
+
+      <!-- AppImage (.AppImage / .appimage) -->
+      <mime-type type="application/vnd.appimage">
+        <comment>AppImage Application Bundle</comment>
+        <comment xml:lang="tr">AppImage Uygulama Paketi</comment>
+        <acronym>AppImage</acronym>
+        <glob pattern="*.AppImage"/>
+        <glob pattern="*.appimage"/>
+        <magic priority="60">
+          <match type="string" offset="8" value="AI\\x02"/>
+        </magic>
+      </mime-type>
+
+    </mime-info>
+""")
+
+MIME_TYPES = [
+    "application/vnd.debian.binary-package",
+    "application/x-rpm",
+    "application/vnd.snap",
+    "application/vnd.flatpak",
+    "application/vnd.appimage",
+]
+
+
+def _local_prefix() -> Path:
+    return Path.home() / ".local"
+
+
+def _run_quiet(*cmd: str) -> bool:
+    """Komutu sessizce çalıştır, başarılıysa True döndür."""
+    try:
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+
+def desktop_install() -> None:
+    """~/.local altına desktop entry, ikon, MIME XML kur ve ilişkilendir."""
+    prefix = _local_prefix()
+    src_dir = Path(__file__).resolve().parent
+
+    # Exec yolu: kurulu binary veya bu script
+    exec_path = shutil.which("wropasi") or str(src_dir / "wropasi.py")
+
+    # ── Desktop dosyası ──
+    desktop_dir = prefix / "share" / "applications"
+    desktop_dir.mkdir(parents=True, exist_ok=True)
+    desktop_file = desktop_dir / f"{APP_ID}.desktop"
+    desktop_file.write_text(
+        DESKTOP_ENTRY.format(exec_path=exec_path, icon_name=APP_ID),
+        encoding="utf-8",
+    )
+    print(f"  ✓ {desktop_file}")
+
+    # ── İkon ──
+    icon_src = src_dir.parent.parent / "wropasi-logo.png"
+    if icon_src.exists():
+        icon_dst = prefix / "share" / "icons" / "hicolor" / "256x256" / "apps" / f"{APP_ID}.png"
+        icon_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(icon_src, icon_dst)
+        print(f"  ✓ {icon_dst}")
+    else:
+        print(f"  ⚠ İkon bulunamadı: {icon_src}")
+
+    # ── MIME XML ──
+    mime_dir = prefix / "share" / "mime" / "packages"
+    mime_dir.mkdir(parents=True, exist_ok=True)
+    mime_file = mime_dir / f"{APP_ID}.mime.xml"
+    mime_file.write_text(MIME_XML, encoding="utf-8")
+    print(f"  ✓ {mime_file}")
+
+    # ── Veritabanlarını güncelle ──
+    print("→ Veritabanları güncelleniyor...")
+    apps_dir = str(prefix / "share" / "applications")
+    mime_base = str(prefix / "share" / "mime")
+    print("  ✓ desktop-database" if _run_quiet("update-desktop-database", apps_dir) else "  ⚠ update-desktop-database bulunamadı")
+    print("  ✓ mime-database"    if _run_quiet("update-mime-database", mime_base)    else "  ⚠ update-mime-database bulunamadı")
+
+    # ── MIME ilişkilendirmeleri ──
+    print("→ MIME ilişkilendirmeleri ayarlanıyor...")
+    for mime in MIME_TYPES:
+        ok = _run_quiet("xdg-mime", "default", f"{APP_ID}.desktop", mime)
+        print(f"  {'✓' if ok else '⚠'} {mime}")
+
+    print("\n✓ Kurulum tamamlandı.")
+
+
+def desktop_uninstall() -> None:
+    """desktop_install ile kurulan dosyaları kaldır."""
+    prefix = _local_prefix()
+    targets = [
+        prefix / "share" / "applications" / f"{APP_ID}.desktop",
+        prefix / "share" / "icons" / "hicolor" / "256x256" / "apps" / f"{APP_ID}.png",
+        prefix / "share" / "mime" / "packages" / f"{APP_ID}.mime.xml",
+    ]
+    for p in targets:
+        if p.exists():
+            p.unlink()
+            print(f"  ✓ Silindi: {p}")
+        else:
+            print(f"  - Yok: {p}")
+
+    _run_quiet("update-desktop-database", str(prefix / "share" / "applications"))
+    _run_quiet("update-mime-database",    str(prefix / "share" / "mime"))
+    print("✓ Kaldırıldı.")
 
 # Package handling
 FORMAT_PM: dict[str, str | None] = {
@@ -39,11 +179,63 @@ FORMAT_DISPLAY = {
 }
 
 
-def detect_native_pm() -> str | None:
+def _cache_path() -> Path:
+    """wropasi cache dosyasının yolunu döndür (XDG_CACHE_HOME uyumlu)."""
+    cache_home = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
+    return cache_home / "wropasi" / "pm_cache.json"
+
+
+def _build_cache() -> dict:
+    """Sistemdeki paket yöneticilerini ve yardımcı araçları tespit edip cache sözlüğü oluştur."""
+    native_pm: str | None = None
     for pm in ("dpkg", "rpm", "pacman", "zypper", "dnf"):
         if shutil.which(pm):
-            return pm
-    return None
+            native_pm = pm
+            break
+
+    return {
+        "native_pm": native_pm,
+        "has_flatpak": shutil.which("flatpak") is not None,
+        "has_snap":    shutil.which("snap") is not None,
+        "has_alien":   shutil.which("alien") is not None,
+    }
+
+
+def _write_cache(data: dict) -> None:
+    """Cache verisini diske yaz."""
+    path = _cache_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data), encoding="utf-8")
+
+
+def _read_cache() -> dict | None:
+    """Mevcut cache'i oku; dosya yoksa veya bozuksa None döndür."""
+    path = _cache_path()
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        # Gerekli anahtarlar var mı kontrol et
+        required = {"native_pm", "has_flatpak", "has_snap", "has_alien"}
+        if not required.issubset(data.keys()):
+            return None
+        return data
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def get_pm_cache() -> dict:
+    """Cache'den paket yöneticisi bilgilerini al; cache yoksa oluştur."""
+    cache = _read_cache()
+    if cache is not None:
+        return cache
+    cache = _build_cache()
+    _write_cache(cache)
+    return cache
+
+
+def detect_native_pm() -> str | None:
+    return get_pm_cache()["native_pm"]
 
 
 def match_pkg(filepath: str) -> str:
@@ -260,8 +452,19 @@ class WropasiWindow(Adw.ApplicationWindow):
 
 # Open
 def main():
+    if len(sys.argv) >= 2 and sys.argv[1] == "--install":
+        print("→ wropasi kuruluyor...")
+        desktop_install()
+        sys.exit(0)
+
+    if len(sys.argv) >= 2 and sys.argv[1] == "--uninstall":
+        print("→ wropasi kaldırılıyor...")
+        desktop_uninstall()
+        sys.exit(0)
+
     if len(sys.argv) < 2:
-        print("usage: wropasi <app-path> you cant run this app without an argument", file=sys.stderr)
+        print("usage: wropasi <app-path>  |  wropasi --install  |  wropasi --uninstall",
+              file=sys.stderr)
         sys.exit(1)
 
     app = wropasi(filepath=sys.argv[1])
