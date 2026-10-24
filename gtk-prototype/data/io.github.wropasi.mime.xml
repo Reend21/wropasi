@@ -8,6 +8,13 @@
     <glob pattern="*.flatpak"/>
   </mime-type>
 
+  <mime-type type="application/vnd.flatpakref">
+    <comment>Flatpak Reference</comment>
+    <comment xml:lang="tr">Flatpak Referans Dosyası</comment>
+    <acronym>Flatpak</acronym>
+    <glob pattern="*.flatpakref"/>
+  </mime-type>
+
   <!-- AppImage (.AppImage / .appimage) 
       Freedesktop'ta birden fazla tip önerilmiş (x-iso9660-appimage vb.), resmi konsensüs application/vnd.appimage üzerine yaklaşıyor. Her iki glob da eklenmiştir.
   -->

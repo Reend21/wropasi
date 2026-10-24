@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
-# InitS
+# Init
 import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, Gdk, Gio, GLib
 import sys
 import os
 import json
@@ -16,10 +16,7 @@ from textwrap import dedent
 
 APP_ID = "io.github.wropasi"
 
-# ── Desktop Integration (geliştirme / test kurulumu) ─────────────────────────
-# .deb/.rpm paketlerinde bu fonksiyonlar KULLANILMAZ; paket yöneticisi
-# dosyaları doğrudan /usr/share altına yerleştirir.  Bu sadece install.sh
-# yerine "wropasi --install" ile yerel kurulum yapmak isteyenler içindir.
+# Desktop entry for quick developing
 
 DESKTOP_ENTRY = dedent("""\
     [Desktop Entry]
@@ -32,31 +29,38 @@ DESKTOP_ENTRY = dedent("""\
     Type=Application
     Categories=System;PackageManager;Settings;
     Keywords=package;install;deb;rpm;flatpak;snap;appimage;paket;
-    MimeType=application/vnd.debian.binary-package;application/x-rpm;application/vnd.snap;application/vnd.flatpak;application/vnd.appimage;
+    MimeType=application/vnd.debian.binary-package;application/x-rpm;application/vnd.snap;application/vnd.flatpak;application/vnd.flatpakref;application/vnd.flatpak.ref;application/vnd.appimage;
 """)
 
 MIME_XML = dedent("""\
     <?xml version="1.0" encoding="UTF-8"?>
     <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
 
-      <mime-type type="application/vnd.flatpak">
+    <mime-type type="application/vnd.flatpak">
         <comment>Flatpak Application Bundle</comment>
         <comment xml:lang="tr">Flatpak Uygulama Paketi</comment>
         <acronym>Flatpak</acronym>
         <glob pattern="*.flatpak"/>
-      </mime-type>
+    </mime-type>
 
-      <!-- AppImage (.AppImage / .appimage) -->
-      <mime-type type="application/vnd.appimage">
+    <mime-type type="application/vnd.flatpakref">
+        <comment>Flatpak Reference</comment>
+        <comment xml:lang="tr">Flatpak Referans Dosyası</comment>
+        <acronym>Flatpak</acronym>
+        <glob pattern="*.flatpakref"/>
+    </mime-type>
+
+    <!-- AppImage (.AppImage / .appimage) -->
+    <mime-type type="application/vnd.appimage">
         <comment>AppImage Application Bundle</comment>
         <comment xml:lang="tr">AppImage Uygulama Paketi</comment>
         <acronym>AppImage</acronym>
         <glob pattern="*.AppImage"/>
         <glob pattern="*.appimage"/>
         <magic priority="60">
-          <match type="string" offset="8" value="AI\\x02"/>
+        <match type="string" offset="8" value="AI\\x02"/>
         </magic>
-      </mime-type>
+    </mime-type>
 
     </mime-info>
 """)
@@ -66,6 +70,8 @@ MIME_TYPES = [
     "application/x-rpm",
     "application/vnd.snap",
     "application/vnd.flatpak",
+    "application/vnd.flatpakref",
+    "application/vnd.flatpak.ref",
     "application/vnd.appimage",
 ]
 
@@ -88,10 +94,13 @@ def desktop_install() -> None:
     prefix = _local_prefix()
     src_dir = Path(__file__).resolve().parent
 
-    # Exec yolu: kurulu binary veya bu script
-    exec_path = shutil.which("wropasi") or str(src_dir / "wropasi.py")
+    bin_dir = prefix / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    target_bin = bin_dir / "wropasi"
+    shutil.copy2(src_dir / "wropasi.py", target_bin)
+    target_bin.chmod(0o755)
+    exec_path = str(target_bin)
 
-    # ── Desktop dosyası ──
     desktop_dir = prefix / "share" / "applications"
     desktop_dir.mkdir(parents=True, exist_ok=True)
     desktop_file = desktop_dir / f"{APP_ID}.desktop"
@@ -101,31 +110,36 @@ def desktop_install() -> None:
     )
     print(f"  ✓ {desktop_file}")
 
-    # ── İkon ──
-    icon_src = src_dir.parent.parent / "wropasi-logo.png"
-    if icon_src.exists():
-        icon_dst = prefix / "share" / "icons" / "hicolor" / "256x256" / "apps" / f"{APP_ID}.png"
+    icon_candidates = [
+        src_dir.parent.parent / "wropasi-logo.png",
+        Path.cwd() / "wropasi-logo.png",
+    ]
+    icon_src = next((p for p in icon_candidates if p.exists()), None)
+    icon_dst = prefix / "share" / "icons" / "hicolor" / "256x256" / "apps" / f"{APP_ID}.png"
+    if icon_src:
         icon_dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(icon_src, icon_dst)
         print(f"  ✓ {icon_dst}")
+    elif icon_dst.exists():
+        print(f"  ✓ {icon_dst} (mevcut ikon korundu)")
     else:
-        print(f"  ⚠ İkon bulunamadı: {icon_src}")
+        print(f"  ⚠ İkon bulunamadı: wropasi-logo.png")
 
-    # ── MIME XML ──
     mime_dir = prefix / "share" / "mime" / "packages"
     mime_dir.mkdir(parents=True, exist_ok=True)
     mime_file = mime_dir / f"{APP_ID}.mime.xml"
     mime_file.write_text(MIME_XML, encoding="utf-8")
     print(f"  ✓ {mime_file}")
 
-    # ── Veritabanlarını güncelle ──
     print("→ Veritabanları güncelleniyor...")
     apps_dir = str(prefix / "share" / "applications")
     mime_base = str(prefix / "share" / "mime")
+    icons_dir = str(prefix / "share" / "icons" / "hicolor")
+    icon_cache_tool = "gtk4-update-icon-cache" if shutil.which("gtk4-update-icon-cache") else "gtk-update-icon-cache"
     print("  ✓ desktop-database" if _run_quiet("update-desktop-database", apps_dir) else "  ⚠ update-desktop-database bulunamadı")
     print("  ✓ mime-database"    if _run_quiet("update-mime-database", mime_base)    else "  ⚠ update-mime-database bulunamadı")
+    print("  ✓ icon-cache"       if _run_quiet(icon_cache_tool, "-f", "-t", icons_dir) else "  ⚠ gtk-update-icon-cache bulunamadı")
 
-    # ── MIME ilişkilendirmeleri ──
     print("→ MIME ilişkilendirmeleri ayarlanıyor...")
     for mime in MIME_TYPES:
         ok = _run_quiet("xdg-mime", "default", f"{APP_ID}.desktop", mime)
@@ -138,6 +152,7 @@ def desktop_uninstall() -> None:
     """desktop_install ile kurulan dosyaları kaldır."""
     prefix = _local_prefix()
     targets = [
+        prefix / "bin" / "wropasi",
         prefix / "share" / "applications" / f"{APP_ID}.desktop",
         prefix / "share" / "icons" / "hicolor" / "256x256" / "apps" / f"{APP_ID}.png",
         prefix / "share" / "mime" / "packages" / f"{APP_ID}.mime.xml",
@@ -149,17 +164,20 @@ def desktop_uninstall() -> None:
         else:
             print(f"  - Yok: {p}")
 
+    icon_cache_tool = "gtk4-update-icon-cache" if shutil.which("gtk4-update-icon-cache") else "gtk-update-icon-cache"
     _run_quiet("update-desktop-database", str(prefix / "share" / "applications"))
     _run_quiet("update-mime-database",    str(prefix / "share" / "mime"))
+    _run_quiet(icon_cache_tool,           "-f", "-t", str(prefix / "share" / "icons" / "hicolor"))
     print("✓ Kaldırıldı.")
 
 # Package handling
 FORMAT_PM: dict[str, str | None] = {
-    ".deb":      "dpkg",
-    ".rpm":      "rpm",
-    ".flatpak":  "flatpak",
-    ".snap":     "snap",
-    ".appimage": None,
+    ".deb":         "dpkg",
+    ".rpm":         "rpm",
+    ".flatpak":     "flatpak",
+    ".flatpakref":  "flatpak",
+    ".snap":        "snap",
+    ".appimage":    None,
 }
 
 PM_DISPLAY = {
@@ -171,11 +189,12 @@ PM_DISPLAY = {
 }
 
 FORMAT_DISPLAY = {
-    ".deb":      "Debian (.deb)",
-    ".rpm":      "RPM (.rpm)",
-    ".flatpak":  "Flatpak (.flatpak)",
-    ".snap":     "Snap (.snap)",
-    ".appimage": "AppImage (.AppImage)",
+    ".deb":        "Debian (.deb)",
+    ".rpm":        "RPM (.rpm)",
+    ".flatpak":    "Flatpak (.flatpak)",
+    ".flatpakref": "Flatpak Referansı (.flatpakref)",
+    ".snap":       "Snap (.snap)",
+    ".appimage":   "AppImage (.AppImage)",
 }
 
 
@@ -215,7 +234,6 @@ def _read_cache() -> dict | None:
         return None
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-        # Gerekli anahtarlar var mı kontrol et
         required = {"native_pm", "has_flatpak", "has_snap", "has_alien"}
         if not required.issubset(data.keys()):
             return None
@@ -239,6 +257,24 @@ def detect_native_pm() -> str | None:
 
 
 def match_pkg(filepath: str) -> str:
+    # .flatpakref dosyalarında Title veya Name alanını oku
+    if filepath.lower().endswith(".flatpakref") and os.path.isfile(filepath):
+        try:
+            ref_title = None
+            ref_name = None
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("Title="):
+                        ref_title = line.split("=", 1)[1].strip()
+                    elif line.startswith("Name="):
+                        ref_name = line.split("=", 1)[1].strip()
+            if ref_title:
+                return ref_title
+            if ref_name:
+                return ref_name
+        except Exception:
+            pass
     base = os.path.basename(filepath)
     name, _ = os.path.splitext(base)
     return name.split("_")[0].split("-")[0]
@@ -258,13 +294,19 @@ class wropasi(Adw.Application):
 class WropasiWindow(Adw.ApplicationWindow):
     def __init__(self, filepath: str, **kwargs):
         super().__init__(**kwargs)
-        self.filepath  = filepath
-        self.ext       = os.path.splitext(filepath)[1].lower()
-        self.name      = match_pkg(filepath)
-        self.native_pm = detect_native_pm()
-        self.file_pm   = FORMAT_PM.get(self.ext, "UNKNOWN")
+        self.filepath    = filepath
+        self.ext         = os.path.splitext(filepath)[1].lower()
+        self.name        = match_pkg(filepath)
+        self.native_pm   = detect_native_pm()
+        self.file_pm     = FORMAT_PM.get(self.ext, "UNKNOWN")
+        self.has_flatpak = shutil.which("flatpak") is not None
 
-        if self.file_pm == "UNKNOWN":
+        if self.ext == ".flatpakref":
+            if self.has_flatpak:
+                self.state = "flatpakref_has_flatpak"
+            else:
+                self.state = "flatpakref_no_flatpak"
+        elif self.file_pm == "UNKNOWN":
             self.state = "unknown"
         elif self.file_pm is None:
             self.state = "standalone"   # AppImage-like
@@ -289,10 +331,12 @@ class WropasiWindow(Adw.ApplicationWindow):
         root.set_margin_end(24)
 
         match self.state:
-            case "compatible":   self._page_compatible(root)
-            case "incompatible": self._page_incompatible(root)
-            case "standalone":   self._page_standalone(root)
-            case _:              self._page_unknown(root)
+            case "compatible":             self._page_compatible(root)
+            case "incompatible":           self._page_incompatible(root)
+            case "standalone":             self._page_standalone(root)
+            case "flatpakref_has_flatpak": self._page_flatpakref_has_flatpak(root)
+            case "flatpakref_no_flatpak":  self._page_flatpakref_no_flatpak(root)
+            case _:                        self._page_unknown(root)
 
         scroll = Gtk.ScrolledWindow(
             child=root,
@@ -310,9 +354,10 @@ class WropasiWindow(Adw.ApplicationWindow):
 
     def _page_standalone(self, box):
         self._status(box, "emblem-ok-symbolic", "success",
-            "AppImage",
+            "Belki şaşıracaksın ama, bu her yerde çalışır!",
             f"<b>{self.name}</b> bir AppImage paketidir. "
-            "Taşınabilir ve her dağıtımda çalışabilir. Dilerseniz 'Gear Lever' ile bu paketi kuralım!")
+            "Aplikasyon Imajları (.AppImage) dosyaları taşınabilir ve tüm Linux sistemlerinde çalışır. "
+            "Direkt çalıştırmak yerine <b>Gear Level</b> veya <b>AppImage Launcher</b> kullanarak bu Aplikasyon Imajını sisteminize yükleyebilirsiniz.")
         self._close_btn(box, "Peki", suggested=True)
 
     def _page_unknown(self, box):
@@ -376,6 +421,81 @@ class WropasiWindow(Adw.ApplicationWindow):
         box.append(lb)
         self._close_btn(box, "İptal")
 
+    def _page_flatpakref_has_flatpak(self, box):
+        self._status(
+            box, "dialog-warning-symbolic", "warning",
+            "PackageKit Entegrasyonu Çalışmıyor",
+            f"Sisteminizde <b>Flatpak</b> kurulu, ancak PackageKit veya yazılım mağazası entegrasyonu "
+            f"bu dosyayı doğrudan işleyemedi.\n"
+            f"<b>{self.name}</b> paketi normal şartlarda doğrudan yazılım mağazanız tarafından açılmalıydı, ama sanırım PackageKit'in size hizmet etmekten daha önemli işleri var..",
+        )
+
+        hdr = Gtk.Label(label="Ne yapabilirsiniz?")
+        hdr.add_css_class("heading")
+        hdr.set_xalign(0)
+        box.append(hdr)
+
+        lb = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        lb.add_css_class("boxed-list")
+
+        lb.append(self._action_row(
+            "Y",
+            "Dosyayı sistemdeki yazılım mağazasına veya PackageKit arayüzüne yönlendir",
+            "system-software-install-symbolic",
+            self._launch_packagekit_or_store_file,
+        ))
+
+        lb.append(self._action_row(
+            "Terminal ile Kur (flatpak install)",
+            f"flatpak install {os.path.basename(self.filepath)}",
+            "utilities-terminal-symbolic",
+            self._show_flatpak_install_hint,
+        ))
+
+        box.append(lb)
+        self._close_btn(box, "Kapat")
+
+    def _page_flatpakref_no_flatpak(self, box):
+        self._status(
+            box, "dialog-warning-symbolic", "warning",
+            "Flatpak Kurulu Değil",
+            f"<b>{self.name}</b> bir Flatpak paketidir (.flatpakref).\n"
+            "Linux'un evrensel paket yöneticisi Flatpak sisteminizde kurulu değil.",
+        )
+
+        hdr = Gtk.Label(label="Ne yapabilirsiniz?")
+        hdr.add_css_class("heading")
+        hdr.set_xalign(0)
+        box.append(hdr)
+
+        lb = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
+        lb.add_css_class("boxed-list")
+
+        lb.append(self._action_row(
+            "Flatpak'i Kur",
+            "Yazılım mağazanız aracılığıyla Flatpak paket yöneticisini kurun",
+            "system-software-install-symbolic",
+            self._install_flatpak_system,
+        ))
+
+        if shutil.which("snap"):
+            lb.append(self._action_row(
+                "Snap Store'da Ara",
+                "Cannonical'ın standart yazılım mağzasında paketinizi arayın",
+                "system-software-install-symbolic",
+                self._open_snap,
+            ))
+
+        lb.append(self._action_row(
+            "Uyumlu sürümü manuel ara",
+            "Genel ağ üzerinden paketi manuel arayın.",
+            "web-browser-symbolic",
+            self._open_web_search,
+        ))
+
+        box.append(lb)
+        self._close_btn(box, "İptal")
+
     def _status(self, box, icon_name, css, title, body):
         icon = Gtk.Image.new_from_icon_name(icon_name)
         icon.set_pixel_size(72)
@@ -421,6 +541,148 @@ class WropasiWindow(Adw.ApplicationWindow):
         return row
 
 # Actions
+    def _launch_packagekit_or_store_file(self):
+        """Flatpakref dosyasını PackageKit veya yazılım mağazası ile açmayı dener."""
+        abs_path = os.path.abspath(self.filepath)
+
+        # 1. PackageKit session DBus çağrısı (org.freedesktop.PackageKit.Modify.InstallPackageFiles)
+        try:
+            bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+            bus.call_sync(
+                "org.freedesktop.PackageKit",
+                "/org/freedesktop/PackageKit",
+                "org.freedesktop.PackageKit.Modify",
+                "InstallPackageFiles",
+                GLib.Variant("(uass)", (0, [abs_path], "")),
+                None,
+                Gio.DBusCallFlags.NONE,
+                1500,
+                None,
+            )
+            return
+        except Exception:
+            pass
+
+        # 2. Grafiksel yazılım mağazalarını doğrudan çağırma
+        for store, args in (
+            ("gnome-software", ["gnome-software", f"--local-filename={abs_path}"]),
+            ("plasma-discover", ["plasma-discover", abs_path]),
+            ("io.elementary.appcenter", ["io.elementary.appcenter", abs_path]),
+            ("pamac-installer", ["pamac-installer", abs_path]),
+            ("pamac-manager", ["pamac-manager", abs_path]),
+            ("gpk-install-local-file", ["gpk-install-local-file", abs_path]),
+            ("bauh", ["bauh", abs_path]),
+        ):
+            if shutil.which(store):
+                try:
+                    subprocess.Popen(args)
+                    return
+                except OSError:
+                    continue
+
+        # 3. Grafiksel mağaza yanıt vermezse terminal talimatı göster
+        cmd = f"flatpak install \"{self.filepath}\""
+        self._show_command_dialog(
+            "Yazılım Mağazası / PackageKit Açılamadı",
+            "Sisteminizde PackageKit oturum servisi veya grafiksel bir yazılım mağazası başlatılamadı.\n"
+            "Dosyayı terminalden doğrudan şu komutla kurabilirsiniz:",
+            cmd,
+        )
+
+    def _install_flatpak_system(self):
+        """PackageKit veya yazılım mağazasına yönlendirerek Flatpak desteğini kurar."""
+        # 1. PackageKit session DBus çağrısı (org.freedesktop.PackageKit.Modify.InstallPackageNames)
+        try:
+            bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+            bus.call_sync(
+                "org.freedesktop.PackageKit",
+                "/org/freedesktop/PackageKit",
+                "org.freedesktop.PackageKit.Modify",
+                "InstallPackageNames",
+                GLib.Variant("(uass)", (0, ["flatpak"], "")),
+                None,
+                Gio.DBusCallFlags.NONE,
+                1500,
+                None,
+            )
+            return
+        except Exception:
+            pass
+
+        # 2. Grafiksel yazılım mağazalarında arama açma
+        for store, args in (
+            ("gnome-software", ["gnome-software", "--search=flatpak"]),
+            ("plasma-discover", ["plasma-discover", "--mode", "search", "flatpak"]),
+            ("io.elementary.appcenter", ["io.elementary.appcenter", "--search", "flatpak"]),
+            ("pamac-manager", ["pamac-manager", "--search", "flatpak"]),
+            ("bauh", ["bauh", "flatpak"]),
+        ):
+            if shutil.which(store):
+                try:
+                    subprocess.Popen(args)
+                    return
+                except OSError:
+                    continue
+
+        # 3. appstream:// URI'si ile açmayı dene
+        try:
+            subprocess.Popen(["xdg-open", "appstream://flatpak"])
+            return
+        except OSError:
+            pass
+
+        # 4. Grafiksel mağaza yoksa paket yöneticisi komutu göster
+        cmd = self._get_native_install_cmd("flatpak")
+        self._show_command_dialog(
+            "Flatpak Kurulumu",
+            "Grafiksel yazılım mağazası veya PackageKit servisi bulunamadı.\n"
+            "Flatpak paketini terminal üzerinden şu komutla kurabilirsiniz:",
+            cmd,
+        )
+
+    def _show_flatpak_install_hint(self):
+        cmd = f"flatpak install \"{self.filepath}\""
+        self._show_command_dialog(
+            "Terminal ile Kurulum",
+            "Terminalde şu komutu çalıştırarak paketi doğrudan kurabilirsiniz:",
+            cmd,
+        )
+
+    def _get_native_install_cmd(self, pkg: str) -> str:
+        if shutil.which("zypper"):
+            return f"sudo zypper install {pkg}"
+        elif shutil.which("dnf"):
+            return f"sudo dnf install {pkg}"
+        elif shutil.which("apt"):
+            return f"sudo apt install {pkg}"
+        elif shutil.which("pacman"):
+            return f"sudo pacman -S {pkg}"
+        elif shutil.which("pkcon"):
+            return f"pkcon install {pkg}"
+        elif self.native_pm == "dpkg":
+            return f"sudo apt install {pkg}"
+        elif self.native_pm == "rpm":
+            return f"sudo rpm -i {pkg}"
+        return f"pkcon install {pkg}"
+
+    def _show_command_dialog(self, heading: str, body_text: str, command: str):
+        d = Adw.AlertDialog(
+            heading=heading,
+            body=f"{body_text}\n\n<b>{command}</b>",
+        )
+        d.set_body_use_markup(True)
+        d.add_response("copy", "Komutu Kopyala")
+        d.add_response("ok", "Tamam")
+        d.set_response_appearance("copy", Adw.ResponseAppearance.SUGGESTED)
+
+        def on_response(_dialog, response_id):
+            if response_id == "copy":
+                clipboard = Gdk.Display.get_default().get_clipboard()
+                clipboard.set(command)
+
+        d.connect("response", on_response)
+        d.present(self)
+
     def _open_flathub(self):
         self._xdg_open(f"https://flathub.org/apps/search?q={urllib.parse.quote(self.name)}")
 
@@ -464,7 +726,7 @@ def main():
 
     if len(sys.argv) < 2:
         print("usage: wropasi <app-path>  |  wropasi --install  |  wropasi --uninstall",
-              file=sys.stderr)
+        file=sys.stderr)
         sys.exit(1)
 
     app = wropasi(filepath=sys.argv[1])

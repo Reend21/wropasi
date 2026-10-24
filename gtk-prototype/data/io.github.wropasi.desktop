@@ -8,4 +8,4 @@ NoDisplay=true
 Type=Application
 Categories=System;PackageManager;Settings;
 Keywords=package;install;deb;rpm;flatpak;snap;appimage;paket;
-MimeType=application/vnd.debian.binary-package;application/x-rpm;application/vnd.snap;application/vnd.flatpak;application/vnd.appimage;
+MimeType=application/vnd.debian.binary-package;application/x-rpm;application/vnd.snap;application/vnd.flatpak;application/vnd.flatpakref;application/vnd.flatpak.ref;application/vnd.appimage;
