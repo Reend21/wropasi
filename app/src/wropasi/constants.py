@@ -1,4 +1,4 @@
-"""Uygulama genelinde kullanılan sabitler."""
+# ! constant variables
 
 from textwrap import dedent
 

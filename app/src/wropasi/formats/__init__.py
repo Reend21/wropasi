@@ -1,7 +1,4 @@
-"""Format handler kayıt defteri (registry).
-
-Dosya uzantısına göre uygun handler'ı döndürür.
-"""
+# ! Format handler registry
 
 from __future__ import annotations
 
@@ -28,7 +25,6 @@ for _handler in _HANDLERS:
 
 
 def get_handler(extension: str) -> BaseFormatHandler | None:
-    """Verilen dosya uzantısı için uygun handler'ı döner, yoksa ``None``."""
     return _REGISTRY.get(extension.lower())
 
 

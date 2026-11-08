@@ -1,4 +1,4 @@
-"""Sistem paket yöneticisi tespiti, cache ve masaüstü kurulum yardımcıları."""
+# ! Main app
 
 from __future__ import annotations
 
@@ -10,8 +10,7 @@ from pathlib import Path
 
 from .constants import APP_ID, DESKTOP_ENTRY, MIME_XML, MIME_TYPES
 
-# -- Paket yöneticisi görüntü adları ------------------------------------------
-
+# ! Package Manager names on gui
 PM_DISPLAY: dict[str, str] = {
     "dpkg":   "APT/dpkg",
     "rpm":    "RPM",
@@ -20,15 +19,13 @@ PM_DISPLAY: dict[str, str] = {
     "dnf":    "DNF",
 }
 
-# -- Yardımcılar --------------------------------------------------------------
-
-
+# ! helpers
 def _local_prefix() -> Path:
     return Path.home() / ".local"
 
 
 def _run_quiet(*cmd: str) -> bool:
-    """Komutu sessizce çalıştır, başarılıysa True döndür."""
+    """run silently, if runs give me true"""
     try:
         subprocess.run(
             cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -38,17 +35,15 @@ def _run_quiet(*cmd: str) -> bool:
         return False
 
 
-# -- Cache ---------------------------------------------------------------------
-
-
+# ! Cache
 def _cache_path() -> Path:
-    """wropasi cache dosyasının yolunu döndür (XDG_CACHE_HOME uyumlu)."""
+    """get cache dir"""
     cache_home = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
     return cache_home / "wropasi" / "pm_cache.json"
 
 
 def _build_cache() -> dict:
-    """Sistemdeki paket yöneticilerini ve yardımcı araçları tespit edip cache sözlüğü oluştur."""
+    """discover package mangers in the system and create cache"""
     native_pm: str | None = None
     for pm in ("dpkg", "rpm", "pacman", "zypper", "dnf"):
         if shutil.which(pm):
@@ -64,14 +59,14 @@ def _build_cache() -> dict:
 
 
 def _write_cache(data: dict) -> None:
-    """Cache verisini diske yaz."""
+    """write cache data"""
     path = _cache_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
 
 
 def _read_cache() -> dict | None:
-    """Mevcut cache'i oku; dosya yoksa veya bozuksa None döndür."""
+    """read existing cache, if there isnt any, return none"""
     path = _cache_path()
     if not path.exists():
         return None
@@ -86,7 +81,7 @@ def _read_cache() -> dict | None:
 
 
 def get_system_info() -> dict:
-    """Cache'den sistem bilgilerini al; cache yoksa oluştur."""
+    """get system info from cache, if there is no cache, create it."""
     cache = _read_cache()
     if cache is not None:
         return cache
@@ -100,7 +95,7 @@ def detect_native_pm() -> str | None:
 
 
 def get_native_install_cmd(pkg: str) -> str:
-    """Verilen paket adı için yerel paket yöneticisine göre kurulum komutu döner."""
+    """return package manager install command"""
     if shutil.which("zypper"):
         return f"sudo zypper install {pkg}"
     elif shutil.which("dnf"):
@@ -121,23 +116,21 @@ def get_native_install_cmd(pkg: str) -> str:
     return f"pkcon install {pkg}"
 
 
-# -- Masaüstü kurulumu --------------------------------------------------------
-
-
+# ! Desktop install (for testing)
 def desktop_install() -> None:
-    """~/.local altına desktop entry, ikon, MIME XML kur ve ilişkilendir."""
+    """Desktop entry and MIME"""
     prefix = _local_prefix()
     src_dir = Path(__file__).resolve().parent      # wropasi/ paket dizini
 
-    # Paket dosyalarını kopyala
+    # ! Paket dosyalarını kopyala
     pkg_dest = prefix / "share" / "wropasi" / "wropasi"
     if pkg_dest.exists():
         shutil.rmtree(pkg_dest)
     pkg_dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(src_dir, pkg_dest)
-    print(f"  ✓ Paket kopyalandı → {pkg_dest}")
+    print(f"  ✓ package copied → {pkg_dest}")
 
-    # Başlatıcı script oluştur
+    # ! create start script
     bin_dir = prefix / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     launcher = bin_dir / "wropasi"
@@ -153,7 +146,7 @@ def desktop_install() -> None:
     exec_path = str(launcher)
     print(f"  ✓ {launcher}")
 
-    # Desktop entry
+    # ! Desktop entry
     desktop_dir = prefix / "share" / "applications"
     desktop_dir.mkdir(parents=True, exist_ok=True)
     desktop_file = desktop_dir / f"{APP_ID}.desktop"
@@ -163,7 +156,7 @@ def desktop_install() -> None:
     )
     print(f"  ✓ {desktop_file}")
 
-    # İkon
+    # ! Icon
     icon_candidates = [
         src_dir.parent.parent.parent / "wropasi-logo.png",   # repo kökü
         src_dir.parent.parent / "wropasi-logo.png",
@@ -178,19 +171,12 @@ def desktop_install() -> None:
         shutil.copy2(icon_src, icon_dst)
         print(f"  ✓ {icon_dst}")
     elif icon_dst.exists():
-        print(f"  ✓ {icon_dst} (mevcut ikon korundu)")
+        print(f"  ✓ {icon_dst} (icon)")
     else:
-        print("  ⚠ İkon bulunamadı: wropasi-logo.png")
+        print("No icon")
 
-    # MIME XML
-    mime_dir = prefix / "share" / "mime" / "packages"
-    mime_dir.mkdir(parents=True, exist_ok=True)
-    mime_file = mime_dir / f"{APP_ID}.mime.xml"
-    mime_file.write_text(MIME_XML, encoding="utf-8")
-    print(f"  ✓ {mime_file}")
-
-    # Veritabanlarını güncelle
-    print("→ Veritabanları güncelleniyor...")
+    # ! Update database
+    print("updating databases")
     apps_dir = str(prefix / "share" / "applications")
     mime_base = str(prefix / "share" / "mime")
     icons_dir = str(prefix / "share" / "icons" / "hicolor")
@@ -202,30 +188,30 @@ def desktop_install() -> None:
     print(
         "  ✓ desktop-database"
         if _run_quiet("update-desktop-database", apps_dir)
-        else "  ⚠ update-desktop-database bulunamadı"
+        else "there is no update-desktop-database"
     )
     print(
         "  ✓ mime-database"
         if _run_quiet("update-mime-database", mime_base)
-        else "  ⚠ update-mime-database bulunamadı"
+        else "there is no update-mime-database"
     )
     print(
         "  ✓ icon-cache"
         if _run_quiet(icon_cache_tool, "-f", "-t", icons_dir)
-        else "  ⚠ gtk-update-icon-cache bulunamadı"
+        else "there is no gtk-update-icon-cache"
     )
 
-    # MIME ilişkilendirmeleri
-    print("→ MIME ilişkilendirmeleri ayarlanıyor...")
+    # ! MIME
+    print("preparing MIMEs")
     for mime in MIME_TYPES:
         ok = _run_quiet("xdg-mime", "default", f"{APP_ID}.desktop", mime)
         print(f"  {'✓' if ok else '⚠'} {mime}")
 
-    print("\n✓ Kurulum tamamlandı.")
+    print("Setup completed")
 
 
 def desktop_uninstall() -> None:
-    """desktop_install ile kurulan dosyaları kaldır."""
+    """remove wropasi from your system"""
     prefix = _local_prefix()
     targets = [
         prefix / "bin" / "wropasi",
@@ -236,15 +222,15 @@ def desktop_uninstall() -> None:
     for p in targets:
         if p.exists():
             p.unlink()
-            print(f"  ✓ Silindi: {p}")
+            print(f"removed: {p}")
         else:
-            print(f"  - Yok: {p}")
+            print(f"there is no {p}")
 
-    # Paket dizinini kaldır
+    # ! Remove package dir
     pkg_dir = prefix / "share" / "wropasi"
     if pkg_dir.exists():
         shutil.rmtree(pkg_dir)
-        print(f"  ✓ Silindi: {pkg_dir}")
+        print(f"  removed: {pkg_dir}")
 
     icon_cache_tool = (
         "gtk4-update-icon-cache"
@@ -254,4 +240,4 @@ def desktop_uninstall() -> None:
     _run_quiet("update-desktop-database", str(prefix / "share" / "applications"))
     _run_quiet("update-mime-database", str(prefix / "share" / "mime"))
     _run_quiet(icon_cache_tool, "-f", "-t", str(prefix / "share" / "icons" / "hicolor"))
-    print("✓ Kaldırıldı.")
+    print("Removed")
