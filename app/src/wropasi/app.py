@@ -157,8 +157,8 @@ class WropasiWindow(Adw.ApplicationWindow):
             case "alien":
                 self._exec_alien(action)
 
+    # tries to open the package with packagekit or app center
     def _exec_packagekit_file(self, action: Action):
-        """tries to open the package with packagekit or app center"""
         abs_path = os.path.abspath(action.payload)
 
         # ! PackageKit session DBus call
@@ -203,8 +203,8 @@ class WropasiWindow(Adw.ApplicationWindow):
             action.fallback_command,
         )
 
+    # Install package with packagekit
     def _exec_packagekit_install(self, action: Action):
-        """Install package with packagekit"""
         pkg_name = action.payload
 
         # ! PackageKit session DBus
@@ -254,8 +254,8 @@ class WropasiWindow(Adw.ApplicationWindow):
             action.fallback_command,
         )
 
+    # turn with alien
     def _exec_alien(self, action: Action):
-        """turn with alien"""
         native_pm = self.system_info.get("native_pm")
         target = "deb" if native_pm == "dpkg" else "rpm"
         fname = os.path.basename(action.payload)

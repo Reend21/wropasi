@@ -1,4 +1,4 @@
-"""Debian (.deb) format handler."""
+# Debian (.deb) format handler.
 
 from .base import NativeFormatHandler
 

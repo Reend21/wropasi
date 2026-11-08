@@ -1,4 +1,4 @@
-"""AppImage (.appimage) format handler."""
+# AppImage (.appimage) format handler.
 
 from __future__ import annotations
 

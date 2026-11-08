@@ -1,4 +1,4 @@
-"""RPM (.rpm) format handler."""
+# RPM (.rpm) format handler.
 
 from .base import NativeFormatHandler
 

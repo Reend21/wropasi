@@ -28,8 +28,8 @@ def get_handler(extension: str) -> BaseFormatHandler | None:
     return _REGISTRY.get(extension.lower())
 
 
+# Tanınmayan format için varsayılan sonuç üretir
 def get_unknown_result(ext: str) -> FormatResult:
-    """Tanınmayan format için varsayılan sonuç üretir."""
     return FormatResult(
         status=StatusInfo(
             "dialog-error-symbolic",

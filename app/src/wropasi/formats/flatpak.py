@@ -1,4 +1,4 @@
-"""Flatpak (.flatpak) ve Flatpak Referansı (.flatpakref) format handler'ları."""
+# Flatpak (.flatpak) ve Flatpak Referansı (.flatpakref) format handler'ları.
 
 from __future__ import annotations
 
@@ -15,26 +15,20 @@ from .base import (
 from ..system import get_native_install_cmd
 
 
+# Flatpak paket dosyaları (.flatpak) için handler.
+# Flatpak yerel bir PM olmadığından (native_pm listesinde yok),
+# NativeFormatHandler mantığıyla her zaman "uyumsuz" sonucu verir.
 class FlatpakBundleHandler(NativeFormatHandler):
-    """Flatpak paket dosyaları (.flatpak) için handler.
-
-    Flatpak yerel bir PM olmadığından (native_pm listesinde yok),
-    NativeFormatHandler mantığıyla her zaman "uyumsuz" sonucu verir.
-    """
-
     extensions = (".flatpak",)
     display_name = "Flatpak (.flatpak)"
     required_pm = "flatpak"
 
 
+# .flatpakref dosyaları için özel handler.
+# İki durumu vardır:
+# - Flatpak kuruluysa  → PackageKit/mağaza entegrasyonu arızalanmış demektir.
+# - Flatpak kurulu değilse → Flatpak'i kurması gerektiğini bildirir.
 class FlatpakRefHandler(BaseFormatHandler):
-    """.flatpakref dosyaları için özel handler.
-
-    İki durumu vardır:
-    - Flatpak kuruluysa  → PackageKit/mağaza entegrasyonu arızalanmış demektir.
-    - Flatpak kurulu değilse → Flatpak'i kurması gerektiğini bildirir.
-    """
-
     extensions = (".flatpakref",)
     display_name = "Flatpak Referansı (.flatpakref)"
     required_pm = "flatpak"

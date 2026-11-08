@@ -24,8 +24,8 @@ def _local_prefix() -> Path:
     return Path.home() / ".local"
 
 
+# run silently, if runs give me true
 def _run_quiet(*cmd: str) -> bool:
-    """run silently, if runs give me true"""
     try:
         subprocess.run(
             cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -36,14 +36,14 @@ def _run_quiet(*cmd: str) -> bool:
 
 
 # ! Cache
+# get cache dir
 def _cache_path() -> Path:
-    """get cache dir"""
     cache_home = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
     return cache_home / "wropasi" / "pm_cache.json"
 
 
+# discover package mangers in the system and create cache
 def _build_cache() -> dict:
-    """discover package mangers in the system and create cache"""
     native_pm: str | None = None
     for pm in ("dpkg", "rpm", "pacman", "zypper", "dnf"):
         if shutil.which(pm):
@@ -58,15 +58,15 @@ def _build_cache() -> dict:
     }
 
 
+# write cache data
 def _write_cache(data: dict) -> None:
-    """write cache data"""
     path = _cache_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
 
 
+# read existing cache, if there isnt any, return none
 def _read_cache() -> dict | None:
-    """read existing cache, if there isnt any, return none"""
     path = _cache_path()
     if not path.exists():
         return None
@@ -80,8 +80,8 @@ def _read_cache() -> dict | None:
         return None
 
 
+# get system info from cache, if there is no cache, create it.
 def get_system_info() -> dict:
-    """get system info from cache, if there is no cache, create it."""
     cache = _read_cache()
     if cache is not None:
         return cache
@@ -94,8 +94,8 @@ def detect_native_pm() -> str | None:
     return get_system_info()["native_pm"]
 
 
+# return package manager install command
 def get_native_install_cmd(pkg: str) -> str:
-    """return package manager install command"""
     if shutil.which("zypper"):
         return f"sudo zypper install {pkg}"
     elif shutil.which("dnf"):
@@ -117,8 +117,8 @@ def get_native_install_cmd(pkg: str) -> str:
 
 
 # ! Desktop install (for testing)
+# Desktop entry and MIME
 def desktop_install() -> None:
-    """Desktop entry and MIME"""
     prefix = _local_prefix()
     src_dir = Path(__file__).resolve().parent      # wropasi/ paket dizini
 
@@ -210,8 +210,8 @@ def desktop_install() -> None:
     print("Setup completed")
 
 
+# remove wropasi from your system
 def desktop_uninstall() -> None:
-    """remove wropasi from your system"""
     prefix = _local_prefix()
     targets = [
         prefix / "bin" / "wropasi",

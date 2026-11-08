@@ -1,4 +1,4 @@
-"""Snap (.snap) format handler."""
+# Snap (.snap) format handler.
 
 from .base import NativeFormatHandler
 

@@ -1,4 +1,4 @@
-"""Format handler'lar için temel sınıflar ve veri yapıları."""
+# Format handler'lar için temel sınıflar ve veri yapıları
 
 from __future__ import annotations
 
@@ -6,31 +6,26 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 
+# Kullanıcıya gösterilecek durum bilgisi (ikon + başlık + açıklama)
 @dataclass
 class StatusInfo:
-    """Kullanıcıya gösterilecek durum bilgisi (ikon + başlık + açıklama)."""
-
     icon_name: str
     css_class: str   # "success", "warning", "error"
     title: str
     body: str
 
 
+# Kullanıcıya sunulacak tek bir aksiyon satırı
+# action_type değerleri:
+# "url"                 – payload URL'sini xdg-open ile aç.
+# "command"             – Komutu (payload) gösteren bir diyalog aç.
+# "packagekit_file"     – Dosyayı (payload) PackageKit/mağaza ile açmayı dene,
+#                         başarısız olursa fallback_command'ı göster.
+# "packagekit_install"  – Paket adını (payload) PackageKit/mağaza ile kurmayı dene,
+#                         başarısız olursa fallback_command'ı göster.
+# "alien"               – payload dosyasını alien ile dönüştürme talimatı göster.
 @dataclass
 class Action:
-    """Kullanıcıya sunulacak tek bir aksiyon satırı.
-
-    action_type değerleri
-    ---------------------
-    "url"                 – payload URL'sini xdg-open ile aç.
-    "command"             – Komutu (payload) gösteren bir diyalog aç.
-    "packagekit_file"     – Dosyayı (payload) PackageKit/mağaza ile açmayı dene,
-                            başarısız olursa fallback_command'ı göster.
-    "packagekit_install"  – Paket adını (payload) PackageKit/mağaza ile kurmayı dene,
-                            başarısız olursa fallback_command'ı göster.
-    "alien"               – payload dosyasını alien ile dönüştürme talimatı göster.
-    """
-
     title: str
     subtitle: str
     icon_name: str
@@ -41,46 +36,39 @@ class Action:
     fallback_command: str = ""
 
 
+# Bir format handler'ının analiz sonucu
+# Window bu yapıyı alır ve jenerik olarak render eder:
+# durum bannerı + aksiyon listesi + kapat butonu.
 @dataclass
 class FormatResult:
-    """Bir format handler'ının analiz sonucu.
-
-    Window bu yapıyı alır ve jenerik olarak render eder:
-    durum bannerı + aksiyon listesi + kapat butonu.
-    """
-
     status: StatusInfo
     actions: list[Action] = field(default_factory=list)
     close_label: str = "Kapat"
     close_suggested: bool = False
 
 
+# Tüm format handler'larının uygulaması gereken soyut temel sınıf
 class BaseFormatHandler(ABC):
-    """Tüm format handler'larının uygulaması gereken soyut temel sınıf."""
-
     extensions: tuple[str, ...] = ()
     display_name: str = ""
     required_pm: str | None = None
 
+    # Dosyadan uygulama/paket adını çıkarır
     @abstractmethod
     def extract_name(self, filepath: str) -> str:
-        """Dosyadan uygulama/paket adını çıkarır."""
         ...
 
+    # Dosyayı sistem bilgilerine göre analiz edip sonuç döner
     @abstractmethod
     def analyze(self, filepath: str, system_info: dict) -> FormatResult:
-        """Dosyayı sistem bilgilerine göre analiz edip sonuç döner."""
         ...
 
 
+# Yerel paket yöneticisine bağlı formatlar için ortak temel (deb, rpm, vb.)
+# Eğer required_pm sistemin yerel PM'i ile eşleşiyorsa "uyumlu",
+# değilse "uyumsuz" sonucu üretir; uyumsuz durumda standart aksiyon
+# listesi (Flathub, Snap Store, alien, web arama) sunar.
 class NativeFormatHandler(BaseFormatHandler):
-    """Yerel paket yöneticisine bağlı formatlar için ortak temel (deb, rpm, vb.).
-
-    Eğer ``required_pm`` sistemin yerel PM'i ile eşleşiyorsa "uyumlu",
-    değilse "uyumsuz" sonucu üretir; uyumsuz durumda standart aksiyon
-    listesi (Flathub, Snap Store, alien, web arama) sunar.
-    """
-
     def extract_name(self, filepath: str) -> str:
         import os
 
