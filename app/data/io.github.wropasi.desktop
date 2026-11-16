@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=wropasi
-Comment=Wrong Package Silly! wropasi solves an UX problem about package management in modern distros
+Comment=Wrong Package Silly! wropasi solves an UX problem about package management in modern desktop enviroments
 Exec=/usr/bin/wropasi %f
 Icon=io.github.wropasi
 Terminal=false
