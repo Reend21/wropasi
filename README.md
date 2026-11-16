@@ -1,5 +1,5 @@
-<img src="wropasi-logo.png" alt="wropasilogo" width="256" height="256"/>
 <a href="./README/readmeTr.md">README in TR</a>
+<img src="wropasi-logo.png" alt="wropasilogo" width="256" height="256"/>
 <br>
 
 # wropasi (wrong package silly)
@@ -24,11 +24,45 @@ And the **Guide the User** method solves that. After the text and symbolic image
 
 ## Screenshots
 
-<img src="prototype.gif" alt="prototype" width="1366" height="768"/>
+<img src="example.gif" alt="prototype" width="1366" height="768"/>
 
 ## Development
 
-Prototype of wropasi developed with just nodejs, for prototype development, there is no guide yet. Development guide will be released when project have a working version with python
+wropasi is currently in **alpha** state, which means the app is working but i need to finish localization integration, properly check all the both Turkish and English strings and package it to .deb and .rpm packages. Then we can talk about an stable release.
+
+You can help me by adding new PM handlers, (located at app/src/wropasi/formats), polish and check the existing ones, **try wropasi in your own system**, do localization for your language and creating a .deb package because i dont know how to package debs.
+
+Found a thing? If you can fix yourself own, just make an pull request properly. If you cant just create a issue.
+
+## Large Language Model (AI) Usage Disclosure
+
+Yes, i did use Large Language Models (AI) for this project. So you can call this project aislop if you want. But firstly, lets take a look that where and which AI models that we use in this software.
+
+### Which AI models used?
+
+These AI models used in this project:
+From **the agy** (Antigravity CLI) interface:
+    - **Gemini 3.8 Flash**
+    - **Claude Sonnet 5.5 & Opus 5.5**
+
+### Which parts created by the AI models in this project?
+
+    - Obviously, the source code of the software
+    - project tree
+    - Localization Integration (i18n)
+    - All thingies in **po** and **app** dirs
+
+### Which parts did not created by the AI models ib this project?
+
+    - Basic algorithm of the software. (Inform and Guide)
+    - Logo
+    - This README file
+    - Javascript Prototype
+    - All strings in the project
+    - Turkish and English localization
+    - .rpm and .deb packages of the software
+
+and thats it.
 
 ## License
 
