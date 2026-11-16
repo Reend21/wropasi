@@ -5,7 +5,7 @@
 
 # wropasi (wrong package silly)
 
-> wropasi still in development and only have a prototype that developed with node.js. The software will going to develop with Python + GTK4 in stable release.
+> wropasi is currently in alpha state. Which means still got a long way for stable release. Contributes will be appreciated.
 
 wropasi, is an utility that solves an UX problem for the modern and user friendly Linux distributions.
 
