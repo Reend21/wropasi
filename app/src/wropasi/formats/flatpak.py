@@ -1,4 +1,4 @@
-# ! Flatpak handler
+# Flatpak (.flatpak / .flatpakref) format handlers.
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import os
 import re
 import urllib.parse
 
+from ..i18n import _
 from .base import (
     BaseFormatHandler,
     Action,
@@ -14,7 +15,8 @@ from .base import (
 )
 from ..system import get_native_install_cmd
 
-# ! Flatpak application bundle (.flatpak)
+
+# Handler for Flatpak application bundles (.flatpak)
 class FlatpakBundleHandler(BaseFormatHandler):
     extensions = (".flatpak",)
     display_name = "Flatpak (.flatpak)"
@@ -22,7 +24,12 @@ class FlatpakBundleHandler(BaseFormatHandler):
     def extract_name(self, filepath: str) -> str:
         base = os.path.basename(filepath)
         name, _ = os.path.splitext(base)
-        cleaned = re.sub(r"[-.](x86_64|aarch64|armv7hl|armhf|i686|noarch|ppc64le|s390x|x64)$", "", name, flags=re.I)
+        cleaned = re.sub(
+            r"[-.](x86_64|aarch64|armv7hl|armhf|i686|noarch|ppc64le|s390x|x64)$",
+            "",
+            name,
+            flags=re.I,
+        )
         if "_" in cleaned:
             return cleaned.split("_")[0]
         parts = re.split(r"-(?=\d)", cleaned)
@@ -41,27 +48,26 @@ class FlatpakBundleHandler(BaseFormatHandler):
 
         actions = [
             Action(
-                title="Yazılım Mağazası ile Aç",
-                subtitle="Dosyayı sistemdeki yazılım mağazasına veya PackageKit arayüzüne yönlendir",
+                title=_("Open with Software Center"),
+                subtitle=_("Hand the file over to your GUI software center or PackageKit"),
                 icon_name="system-software-install-symbolic",
                 action_type="packagekit_file",
                 payload=filepath,
-                dialog_heading="Yazılım Mağazası / PackageKit Açılamadı",
-                dialog_body=(
-                    "Sisteminizde PackageKit oturum servisi veya grafiksel bir "
-                    "yazılım mağazası başlatılamadı.\n"
-                    "Dosyayı terminalden doğrudan şu komutla kurabilirsiniz:"
+                dialog_heading=_("Software Center Vanished"),
+                dialog_body=_(
+                    "Neither PackageKit session bus nor any graphical software store wanted to talk to us.\n"
+                    "You can still install the package yourself via terminal:"
                 ),
                 fallback_command=fallback_cmd,
             ),
             Action(
-                title="Terminal ile Kur (flatpak install)",
+                title=_("Install via Terminal (flatpak install)"),
                 subtitle=f"flatpak install {os.path.basename(filepath)}",
                 icon_name="utilities-terminal-symbolic",
                 action_type="command",
                 payload=fallback_cmd,
-                dialog_heading="Terminal ile Kurulum",
-                dialog_body="Terminalde şu komutu çalıştırarak paketi doğrudan kurabilirsiniz:",
+                dialog_heading=_("Terminal Installation"),
+                dialog_body=_("Run this command in your terminal to install the package:"),
             ),
         ]
 
@@ -69,12 +75,14 @@ class FlatpakBundleHandler(BaseFormatHandler):
             status=StatusInfo(
                 "emblem-ok-symbolic",
                 "success",
-                "Bu paket sisteminizde çalışabilir.",
-                f"<b>{name}</b> bir Flatpak uygulama paketidir (.flatpak).\n"
-                f"Sisteminizde Flatpak kurulu olduğu için bu paketi kurabilirsiniz.",
+                _("Flatpak Bundle Ready to Deploy"),
+                _(
+                    "<b>{name}</b> is an offline Flatpak bundle (.flatpak).\n"
+                    "Flatpak is installed on your system, so you can install this right away."
+                ).format(name=name),
             ),
             actions=actions,
-            close_label="Kapat",
+            close_label=_("Close"),
             close_suggested=False,
         )
 
@@ -89,15 +97,15 @@ class FlatpakBundleHandler(BaseFormatHandler):
         flatpak_install_cmd = get_native_install_cmd("flatpak")
         actions.append(
             Action(
-                title="Flatpak'i Kur",
-                subtitle="Yazılım mağazanız aracılığıyla Flatpak paket yöneticisini kurun",
+                title=_("Install Flatpak"),
+                subtitle=_("Install the Flatpak package manager through your software center"),
                 icon_name="system-software-install-symbolic",
                 action_type="packagekit_install",
                 payload="flatpak",
-                dialog_heading="Flatpak Kurulumu",
-                dialog_body=(
-                    "Grafiksel yazılım mağazası veya PackageKit servisi bulunamadı.\n"
-                    "Flatpak paketini terminal üzerinden şu komutla kurabilirsiniz:"
+                dialog_heading=_("Flatpak Installation"),
+                dialog_body=_(
+                    "No graphical software store or PackageKit service was found.\n"
+                    "You can install Flatpak via terminal with this command:"
                 ),
                 fallback_command=flatpak_install_cmd,
             )
@@ -106,8 +114,8 @@ class FlatpakBundleHandler(BaseFormatHandler):
         if system_info.get("has_snap"):
             actions.append(
                 Action(
-                    title="Snap Store'da Ara",
-                    subtitle="Cannonical'ın standart yazılım mağzasında paketinizi arayın",
+                    title=_("Search on Snap Store"),
+                    subtitle=_("Search Canonical's walled-ish garden for this app"),
                     icon_name="system-software-install-symbolic",
                     action_type="url",
                     payload=f"https://snapcraft.io/search?q={urllib.parse.quote(name)}",
@@ -117,8 +125,8 @@ class FlatpakBundleHandler(BaseFormatHandler):
         native_pm = system_info.get("native_pm")
         actions.append(
             Action(
-                title="Uyumlu sürümü manuel ara",
-                subtitle="Genel ağ üzerinden paketi manuel arayın.",
+                title=_("Search the Web Manually"),
+                subtitle=_("Hunt for a compatible installer across the wild internet"),
                 icon_name="web-browser-symbolic",
                 action_type="url",
                 payload=(
@@ -132,17 +140,18 @@ class FlatpakBundleHandler(BaseFormatHandler):
             status=StatusInfo(
                 "dialog-warning-symbolic",
                 "warning",
-                "Flatpak Kurulu Değil",
-                f"<b>{name}</b> bir Flatpak paketidir (.flatpak).\n"
-                "Linux'un evrensel paket yöneticisi Flatpak sisteminizde kurulu değil.",
+                _("Flatpak is Missing"),
+                _(
+                    "<b>{name}</b> is a Flatpak bundle (.flatpak).\n"
+                    "Linux's favorite universal sandbox runtime is not installed on this machine."
+                ).format(name=name),
             ),
             actions=actions,
-            close_label="İptal",
+            close_label=_("Cancel"),
         )
 
 
-# ! if flatpak installed, then the mime handler is broken
-# ! if flatpak not installed, then show a dialog that tells to install flatpak
+# Handler for Flatpak reference files (.flatpakref)
 class FlatpakRefHandler(BaseFormatHandler):
     extensions = (".flatpakref",)
     display_name = "Flatpak Reference (.flatpakref)"
@@ -169,7 +178,12 @@ class FlatpakRefHandler(BaseFormatHandler):
 
         base = os.path.basename(filepath)
         name, _ = os.path.splitext(base)
-        cleaned = re.sub(r"[-.](x86_64|aarch64|armv7hl|armhf|i686|noarch|ppc64le|s390x|x64)$", "", name, flags=re.I)
+        cleaned = re.sub(
+            r"[-.](x86_64|aarch64|armv7hl|armhf|i686|noarch|ppc64le|s390x|x64)$",
+            "",
+            name,
+            flags=re.I,
+        )
         if "_" in cleaned:
             return cleaned.split("_")[0]
         parts = re.split(r"-(?=\d)", cleaned)
@@ -188,27 +202,26 @@ class FlatpakRefHandler(BaseFormatHandler):
 
         actions = [
             Action(
-                title="Yazılım Mağazası ile Aç",
-                subtitle="Dosyayı sistemdeki yazılım mağazasına veya PackageKit arayüzüne yönlendir",
+                title=_("Open with Software Center"),
+                subtitle=_("Hand the file over to your GUI software center or PackageKit"),
                 icon_name="system-software-install-symbolic",
                 action_type="packagekit_file",
                 payload=filepath,
-                dialog_heading="Yazılım Mağazası / PackageKit Açılamadı",
-                dialog_body=(
-                    "Sisteminizde PackageKit oturum servisi veya grafiksel bir "
-                    "yazılım mağazası başlatılamadı.\n"
-                    "Dosyayı terminalden doğrudan şu komutla kurabilirsiniz:"
+                dialog_heading=_("Software Center Vanished"),
+                dialog_body=_(
+                    "Neither PackageKit session bus nor any graphical software store wanted to talk to us.\n"
+                    "You can still install the package yourself via terminal:"
                 ),
                 fallback_command=fallback_cmd,
             ),
             Action(
-                title="Terminal ile Kur (flatpak install)",
+                title=_("Install via Terminal (flatpak install)"),
                 subtitle=f"flatpak install {os.path.basename(filepath)}",
                 icon_name="utilities-terminal-symbolic",
                 action_type="command",
                 payload=fallback_cmd,
-                dialog_heading="Terminal ile Kurulum",
-                dialog_body="Terminalde şu komutu çalıştırarak paketi doğrudan kurabilirsiniz:",
+                dialog_heading=_("Terminal Installation"),
+                dialog_body=_("Run this command in your terminal to install the package:"),
             ),
         ]
 
@@ -216,12 +229,15 @@ class FlatpakRefHandler(BaseFormatHandler):
             status=StatusInfo(
                 "dialog-warning-symbolic",
                 "warning",
-                "MIME Handler is not working",
-                f"Your system has Flatpak package manager but looks like "
-                f"your system didn't directed you properly to install the package.\n"
-                f"Now we can try to fix the false Flatpak handling or you can install the package right now ",
+                _("MIME Handler Took a Nap"),
+                _(
+                    "Your system has <b>Flatpak</b> installed, but the desktop didn't route "
+                    "this <b>{name}</b> reference file properly.\n"
+                    "PackageKit seems to have more important business to attend to."
+                ).format(name=name),
             ),
             actions=actions,
+            close_label=_("Close"),
         )
 
     def _no_flatpak(
@@ -235,15 +251,15 @@ class FlatpakRefHandler(BaseFormatHandler):
         flatpak_install_cmd = get_native_install_cmd("flatpak")
         actions.append(
             Action(
-                title="Flatpak'i Kur",
-                subtitle="Yazılım mağazanız aracılığıyla Flatpak paket yöneticisini kurun",
+                title=_("Install Flatpak"),
+                subtitle=_("Install the Flatpak package manager through your software center"),
                 icon_name="system-software-install-symbolic",
                 action_type="packagekit_install",
                 payload="flatpak",
-                dialog_heading="Flatpak Kurulumu",
-                dialog_body=(
-                    "Grafiksel yazılım mağazası veya PackageKit servisi bulunamadı.\n"
-                    "Flatpak paketini terminal üzerinden şu komutla kurabilirsiniz:"
+                dialog_heading=_("Flatpak Installation"),
+                dialog_body=_(
+                    "No graphical software store or PackageKit service was found.\n"
+                    "You can install Flatpak via terminal with this command:"
                 ),
                 fallback_command=flatpak_install_cmd,
             )
@@ -252,8 +268,8 @@ class FlatpakRefHandler(BaseFormatHandler):
         if system_info.get("has_snap"):
             actions.append(
                 Action(
-                    title="Snap Store'da Ara",
-                    subtitle="Cannonical'ın standart yazılım mağzasında paketinizi arayın",
+                    title=_("Search on Snap Store"),
+                    subtitle=_("Search Canonical's walled-ish garden for this app"),
                     icon_name="system-software-install-symbolic",
                     action_type="url",
                     payload=f"https://snapcraft.io/search?q={urllib.parse.quote(name)}",
@@ -263,8 +279,8 @@ class FlatpakRefHandler(BaseFormatHandler):
         native_pm = system_info.get("native_pm")
         actions.append(
             Action(
-                title="Uyumlu sürümü manuel ara",
-                subtitle="Genel ağ üzerinden paketi manuel arayın.",
+                title=_("Search the Web Manually"),
+                subtitle=_("Hunt for a compatible installer across the wild internet"),
                 icon_name="web-browser-symbolic",
                 action_type="url",
                 payload=(
@@ -278,10 +294,12 @@ class FlatpakRefHandler(BaseFormatHandler):
             status=StatusInfo(
                 "dialog-warning-symbolic",
                 "warning",
-                "Flatpak Kurulu Değil",
-                f"<b>{name}</b> bir Flatpak paketidir (.flatpakref).\n"
-                "Linux'un evrensel paket yöneticisi Flatpak sisteminizde kurulu değil.",
+                _("Flatpak is Missing"),
+                _(
+                    "<b>{name}</b> is a Flatpak reference file (.flatpakref).\n"
+                    "Linux's favorite universal sandbox runtime is not installed on this machine."
+                ).format(name=name),
             ),
             actions=actions,
-            close_label="İptal",
+            close_label=_("Cancel"),
         )

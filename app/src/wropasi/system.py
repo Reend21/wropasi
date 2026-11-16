@@ -1,4 +1,4 @@
-# ! Main app
+# System utilities, package manager detection, and desktop integration.
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .constants import APP_ID, DESKTOP_ENTRY, MIME_XML, MIME_TYPES
 
-# ! Package Manager names on gui
+# Package manager display names for the UI
 PM_DISPLAY: dict[str, str] = {
     "apt":    "APT/dpkg",
     "dpkg":   "APT/dpkg",
@@ -20,12 +20,13 @@ PM_DISPLAY: dict[str, str] = {
     "pacman": "Pacman",
 }
 
-# ! helpers
+
+# Helpers
 def _local_prefix() -> Path:
     return Path.home() / ".local"
 
 
-# run silently, if runs give me true
+# Run a shell command silently; returns True if exit code is 0
 def _run_quiet(*cmd: str) -> bool:
     try:
         subprocess.run(
@@ -36,14 +37,13 @@ def _run_quiet(*cmd: str) -> bool:
         return False
 
 
-# ! Cache
-# get cache dir
+# Cache management
 def _cache_path() -> Path:
     cache_home = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
     return cache_home / "wropasi" / "pm_cache.json"
 
 
-# ! discover package mangers in the system and create cache
+# Probe system for installed package managers and create cache dict
 def _build_cache() -> dict:
     native_pm: str | None = None
     for pm in ("dnf", "zypper", "apt", "dpkg", "pacman", "rpm"):
@@ -59,14 +59,12 @@ def _build_cache() -> dict:
     }
 
 
-# ! write cache data
 def _write_cache(data: dict) -> None:
     path = _cache_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
 
 
-# ! read existing cache, if there isnt any, return none
 def _read_cache() -> dict | None:
     path = _cache_path()
     if not path.exists():
@@ -81,7 +79,7 @@ def _read_cache() -> dict | None:
         return None
 
 
-# ! get system info from cache, if there is no cache, create it.
+# Retrieve system info from cache, creating cache if missing
 def get_system_info() -> dict:
     cache = _read_cache()
     if cache is not None:
@@ -95,7 +93,7 @@ def detect_native_pm() -> str | None:
     return get_system_info()["native_pm"]
 
 
-# ! return package manager install command
+# Return native install command for a package name
 def get_native_install_cmd(pkg: str) -> str:
     if shutil.which("zypper"):
         return f"sudo zypper install {pkg}"
@@ -117,13 +115,12 @@ def get_native_install_cmd(pkg: str) -> str:
     return f"pkcon install {pkg}"
 
 
-# ! Desktop install (for testing)
-# Desktop entry and MIME
+# Desktop and MIME installation
 def desktop_install() -> None:
     prefix = _local_prefix()
-    src_dir = Path(__file__).resolve().parent      # wropasi/ paket dizini
+    src_dir = Path(__file__).resolve().parent  # wropasi/ package directory
 
-    # ! Paket dosyalarını kopyala
+    # 1. Copy package files
     pkg_dest = prefix / "share" / "wropasi" / "wropasi"
     if pkg_dest.exists():
         shutil.rmtree(pkg_dest)
@@ -131,7 +128,7 @@ def desktop_install() -> None:
     shutil.copytree(src_dir, pkg_dest)
     print(f"  ✓ package copied → {pkg_dest}")
 
-    # ! create start script
+    # 2. Create launcher script
     bin_dir = prefix / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
     launcher = bin_dir / "wropasi"
@@ -147,7 +144,7 @@ def desktop_install() -> None:
     exec_path = str(launcher)
     print(f"  ✓ {launcher}")
 
-    # ! Desktop entry
+    # 3. Desktop entry
     desktop_dir = prefix / "share" / "applications"
     desktop_dir.mkdir(parents=True, exist_ok=True)
     desktop_file = desktop_dir / f"{APP_ID}.desktop"
@@ -157,16 +154,16 @@ def desktop_install() -> None:
     )
     print(f"  ✓ {desktop_file}")
 
-    # ! MIME definition
+    # 4. MIME XML definition
     mime_packages_dir = prefix / "share" / "mime" / "packages"
     mime_packages_dir.mkdir(parents=True, exist_ok=True)
     mime_file = mime_packages_dir / f"{APP_ID}.mime.xml"
     mime_file.write_text(MIME_XML, encoding="utf-8")
     print(f"  ✓ {mime_file}")
 
-    # ! Icon
+    # 5. Icon
     icon_candidates = [
-        src_dir.parent.parent.parent / "wropasi-logo.png",   # repo kökü
+        src_dir.parent.parent.parent / "wropasi-logo.png",  # repo root
         src_dir.parent.parent / "wropasi-logo.png",
         Path.cwd() / "wropasi-logo.png",
     ]
@@ -179,12 +176,19 @@ def desktop_install() -> None:
         shutil.copy2(icon_src, icon_dst)
         print(f"  ✓ {icon_dst}")
     elif icon_dst.exists():
-        print(f"  ✓ {icon_dst} (icon)")
+        print(f"  ✓ {icon_dst} (existing icon)")
     else:
-        print("No icon")
+        print("  ⚠ No icon found")
 
-    # ! Update database
-    print("updating databases")
+    # 6. Locale files (translations)
+    pkg_locale = src_dir / "locale"
+    if pkg_locale.exists():
+        prefix_locale = prefix / "share" / "locale"
+        shutil.copytree(pkg_locale, prefix_locale, dirs_exist_ok=True)
+        print(f"  ✓ translations copied → {prefix_locale}")
+
+    # 7. Update system databases
+    print("Updating desktop, MIME, and icon databases...")
     apps_dir = str(prefix / "share" / "applications")
     mime_base = str(prefix / "share" / "mime")
     icons_dir = str(prefix / "share" / "icons" / "hicolor")
@@ -196,29 +200,29 @@ def desktop_install() -> None:
     print(
         "  ✓ desktop-database"
         if _run_quiet("update-desktop-database", apps_dir)
-        else "there is no update-desktop-database"
+        else "  ⚠ update-desktop-database not available"
     )
     print(
         "  ✓ mime-database"
         if _run_quiet("update-mime-database", mime_base)
-        else "there is no update-mime-database"
+        else "  ⚠ update-mime-database not available"
     )
     print(
         "  ✓ icon-cache"
         if _run_quiet(icon_cache_tool, "-f", "-t", icons_dir)
-        else "there is no gtk-update-icon-cache"
+        else "  ⚠ gtk-update-icon-cache not available"
     )
 
-    # ! MIME
-    print("preparing MIMEs")
+    # 8. Configure default MIME associations
+    print("Configuring default MIME handlers...")
     for mime in MIME_TYPES:
         ok = _run_quiet("xdg-mime", "default", f"{APP_ID}.desktop", mime)
         print(f"  {'✓' if ok else '⚠'} {mime}")
 
-    print("Setup completed")
+    print("Setup completed successfully!")
 
 
-# ! remove wropasi from your system
+# Remove wropasi from system
 def desktop_uninstall() -> None:
     prefix = _local_prefix()
     targets = [
@@ -226,15 +230,16 @@ def desktop_uninstall() -> None:
         prefix / "share" / "applications" / f"{APP_ID}.desktop",
         prefix / "share" / "icons" / "hicolor" / "256x256" / "apps" / f"{APP_ID}.png",
         prefix / "share" / "mime" / "packages" / f"{APP_ID}.mime.xml",
+        prefix / "share" / "locale" / "tr" / "LC_MESSAGES" / f"{APP_ID}.mo",
     ]
     for p in targets:
         if p.exists():
             p.unlink()
             print(f"removed: {p}")
         else:
-            print(f"there is no {p}")
+            print(f"not found: {p}")
 
-    # ! Remove package dir
+    # Remove package files
     pkg_dir = prefix / "share" / "wropasi"
     if pkg_dir.exists():
         shutil.rmtree(pkg_dir)
@@ -248,4 +253,4 @@ def desktop_uninstall() -> None:
     _run_quiet("update-desktop-database", str(prefix / "share" / "applications"))
     _run_quiet("update-mime-database", str(prefix / "share" / "mime"))
     _run_quiet(icon_cache_tool, "-f", "-t", str(prefix / "share" / "icons" / "hicolor"))
-    print("Removed")
+    print("Uninstall completed.")

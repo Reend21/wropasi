@@ -1,0 +1,356 @@
+# Turkish translations for wropasi.
+# Copyright (C) 2026 Akın Birdal <reend21@protonmail.com>
+# This file is distributed under the same license as the wropasi package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: wropasi 0.1.0\n"
+"Report-Msgid-Bugs-To: reend21@protonmail.com\n"
+"POT-Creation-Date: 2026-11-16 20:25+0300\n"
+"PO-Revision-Date: 2026-11-16 20:26+0300\n"
+"Last-Translator: Akın Birdal <reend21@protonmail.com>\n"
+"Language-Team: Turkish <tr@li.org>\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: app/src/wropasi/app.py:89
+msgid "What can you do?"
+msgstr "Ne yapabilirsiniz?"
+
+#: app/src/wropasi/app.py:100 app/src/wropasi/formats/base.py:158
+#: app/src/wropasi/formats/flatpak.py:85 app/src/wropasi/formats/flatpak.py:240
+#: app/src/wropasi/formats/snap.py:64
+msgid "Close"
+msgstr "Kapat"
+
+#: app/src/wropasi/app.py:155
+msgid "Command"
+msgstr "Komut"
+
+#: app/src/wropasi/app.py:156
+msgid "Run this command in your terminal:"
+msgstr "Terminalde şu komutu çalıştırın:"
+
+#: app/src/wropasi/app.py:207
+msgid "Package Manager Not Found"
+msgstr "Yazılım Mağazası / PackageKit Bulunamadı"
+
+#: app/src/wropasi/app.py:208
+msgid "You can install the package manually via terminal:"
+msgstr "Paketi terminal üzerinden kendiniz kurabilirsiniz:"
+
+#: app/src/wropasi/app.py:258
+msgid "Installation"
+msgstr "Kurulum"
+
+#: app/src/wropasi/app.py:259
+msgid "You can install this package via terminal:"
+msgstr "Bu paketi terminal üzerinden kurabilirsiniz:"
+
+#: app/src/wropasi/app.py:271
+msgid "Alien Package Converter"
+msgstr "Alien Paket Dönüştürücü"
+
+#: app/src/wropasi/app.py:272
+msgid "Run this in your terminal and pray to the package gods:"
+msgstr "Bunu terminalde çalıştırın ve paketleme tanrılarına dua edin:"
+
+#: app/src/wropasi/app.py:282
+msgid "Copy Command"
+msgstr "Komutu Kopyala"
+
+#: app/src/wropasi/app.py:283
+msgid "Got it"
+msgstr "Anladım"
+
+#: app/src/wropasi/formats/__init__.py:34
+msgid "(no extension)"
+msgstr "(uzantısız)"
+
+#: app/src/wropasi/formats/__init__.py:39
+msgid "What on earth is this?"
+msgstr "Bu ne be?"
+
+#: app/src/wropasi/formats/__init__.py:41
+#, python-brace-format
+msgid ""
+"We don't recognize the <b>{ext}</b> format. If this is our blunder, our "
+"apologies. But this packaging system is either wildly niche or straight up "
+"made up."
+msgstr ""
+"<b>{ext}</b> formatını tanıyamadık. Bu bizim eşekliğimizse affola; "
+"ancak bu paketleme sistemi ya aşırı niş ya da düpedüz uydurma."
+
+#: app/src/wropasi/formats/__init__.py:45
+msgid "Dismiss"
+msgstr "Peki"
+
+#: app/src/wropasi/formats/base.py:124 app/src/wropasi/formats/flatpak.py:51
+#: app/src/wropasi/formats/flatpak.py:205
+msgid "Open with Software Center"
+msgstr "Yazılım Mağazası ile Aç"
+
+#: app/src/wropasi/formats/base.py:125 app/src/wropasi/formats/flatpak.py:52
+#: app/src/wropasi/formats/flatpak.py:206
+msgid "Hand the file over to your GUI software center or PackageKit"
+msgstr "Dosyayı sistemdeki yazılım mağazasına veya PackageKit arayüzüne devredin"
+
+#: app/src/wropasi/formats/base.py:129 app/src/wropasi/formats/flatpak.py:56
+#: app/src/wropasi/formats/flatpak.py:210
+msgid "Software Center Vanished"
+msgstr "Yazılım Mağazası / PackageKit Açılamadı"
+
+#: app/src/wropasi/formats/base.py:131 app/src/wropasi/formats/flatpak.py:58
+#: app/src/wropasi/formats/flatpak.py:212
+msgid ""
+"Neither PackageKit session bus nor any graphical software store wanted to "
+"talk to us.\n"
+"You can still install the package yourself via terminal:"
+msgstr ""
+"Ne PackageKit ne de herhangi bir grafiksel yazılım mağazası bizimle muhatap "
+"olmak istedi.\n"
+"Dosyayı terminalden doğrudan şu komutla kurabilirsiniz:"
+
+#: app/src/wropasi/formats/base.py:137
+msgid "Install via Terminal"
+msgstr "Terminal ile Kur"
+
+#: app/src/wropasi/formats/base.py:142 app/src/wropasi/formats/flatpak.py:69
+#: app/src/wropasi/formats/flatpak.py:223 app/src/wropasi/formats/snap.py:48
+msgid "Terminal Installation"
+msgstr "Terminal ile Kurulum"
+
+#: app/src/wropasi/formats/base.py:143 app/src/wropasi/formats/flatpak.py:70
+#: app/src/wropasi/formats/flatpak.py:224
+msgid "Run this command in your terminal to install the package:"
+msgstr "Terminalde şu komutu çalıştırarak paketi doğrudan kurabilirsiniz:"
+
+#: app/src/wropasi/formats/base.py:151
+msgid "Miracle! This package actually works on your system."
+msgstr "Mucize! Bu paket sisteminizde çalışabilir."
+
+#: app/src/wropasi/formats/base.py:153
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is completely compatible with your system. Go ahead and "
+"install it before you change your mind."
+msgstr ""
+"<b>{name}</b> paketi sisteminizle tamamen uyumludur. Fikrinizi değiştirmeden "
+"önce kurun gitsin."
+
+#: app/src/wropasi/formats/base.py:173
+msgid "unknown"
+msgstr "bilinmiyor"
+
+#: app/src/wropasi/formats/base.py:181 app/src/wropasi/formats/snap.py:94
+msgid "Search on Flathub"
+msgstr "Flathub'da Ara"
+
+#: app/src/wropasi/formats/base.py:182 app/src/wropasi/formats/snap.py:95
+msgid "Check the universal sandbox emporium for this app"
+msgstr "Evrensel yazılım pazarında paketinizi arayın"
+
+#: app/src/wropasi/formats/base.py:192 app/src/wropasi/formats/flatpak.py:117
+#: app/src/wropasi/formats/flatpak.py:271
+msgid "Search on Snap Store"
+msgstr "Snap Store'da Ara"
+
+#: app/src/wropasi/formats/base.py:193 app/src/wropasi/formats/flatpak.py:118
+#: app/src/wropasi/formats/flatpak.py:272
+msgid "Search Canonical's walled-ish garden for this app"
+msgstr "Canonical'ın standart yazılım mağazasında paketinizi arayın"
+
+#: app/src/wropasi/formats/base.py:209
+msgid "Convert with alien (Desperate times only)"
+msgstr "alien ile Dönüştür (Sadece son çare)"
+
+#: app/src/wropasi/formats/base.py:211
+#, python-brace-format
+msgid "Mutate the package to {target} format (May work, may summon demons)"
+msgstr ""
+"Paketi {target} formatına çevirin (Çalışabilir de, sistemi karıştırabilir de)"
+
+#: app/src/wropasi/formats/base.py:221 app/src/wropasi/formats/flatpak.py:128
+#: app/src/wropasi/formats/flatpak.py:282 app/src/wropasi/formats/snap.py:105
+msgid "Search the Web Manually"
+msgstr "Uyumlu sürümü manuel ara"
+
+#: app/src/wropasi/formats/base.py:222 app/src/wropasi/formats/flatpak.py:129
+#: app/src/wropasi/formats/flatpak.py:283 app/src/wropasi/formats/snap.py:106
+msgid "Hunt for a compatible installer across the wild internet"
+msgstr "Genel ağ üzerinden sisteminize uygun yükleyiciyi manuel arayın"
+
+#: app/src/wropasi/formats/base.py:236
+msgid "Wrong Package, Silly!"
+msgstr "Yanlış Paket, Şapşal!"
+
+#: app/src/wropasi/formats/base.py:238
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is packaged as <b>{format}</b>, but your system speaks "
+"<b>{native}</b>.\n"
+"Trying to shove this into your system won't end well."
+msgstr ""
+"<b>{name}</b> paketi <b>{format}</b> formatını kullanıyor; sisteminiz ise "
+"<b>{native}</b> dilinden anlıyor.\n"
+"Bu paketi sisteminize zorla sokmaya çalışmak pek iyi sonuçlanmayacaktır."
+
+#: app/src/wropasi/formats/base.py:243 app/src/wropasi/formats/flatpak.py:150
+#: app/src/wropasi/formats/flatpak.py:304 app/src/wropasi/formats/snap.py:127
+msgid "Cancel"
+msgstr "İptal"
+
+#: app/src/wropasi/formats/appimage.py:33
+msgid "Surprise! This actually runs everywhere."
+msgstr "Belki şaşıracaksın ama, bu her yerde çalışır!"
+
+#: app/src/wropasi/formats/appimage.py:35
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is an AppImage. Believe it or not, these portable bundles work "
+"on virtually any Linux distro without throwing a tantrum. Instead of "
+"launching it raw, you might want to use <b>Gear Lever</b> or "
+"<b>AppImageLauncher</b> to integrate it into your desktop."
+msgstr ""
+"<b>{name}</b> bir AppImage paketidir. İnanması güç ama bu taşınabilir "
+"paketler mızmızlanmadan hemen her Linux dağıtımında çalışır. Doğrudan "
+"çalıştırmak yerine <b>Gear Lever</b> veya <b>AppImageLauncher</b> kullanarak "
+"bu paketi sisteminize entegre edebilirsiniz."
+
+#: app/src/wropasi/formats/appimage.py:41
+msgid "All right"
+msgstr "Peki"
+
+#: app/src/wropasi/formats/flatpak.py:64 app/src/wropasi/formats/flatpak.py:218
+msgid "Install via Terminal (flatpak install)"
+msgstr "Terminal ile Kur (flatpak install)"
+
+#: app/src/wropasi/formats/flatpak.py:78
+msgid "Flatpak Bundle Ready to Deploy"
+msgstr "Flatpak Paketi Kurulabilir"
+
+#: app/src/wropasi/formats/flatpak.py:80
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is an offline Flatpak bundle (.flatpak).\n"
+"Flatpak is installed on your system, so you can install this right away."
+msgstr ""
+"<b>{name}</b> çevrimdışı bir Flatpak uygulama paketidir (.flatpak).\n"
+"Sisteminizde Flatpak hazır, doğrudan kurabilirsiniz."
+
+#: app/src/wropasi/formats/flatpak.py:100
+#: app/src/wropasi/formats/flatpak.py:254
+msgid "Install Flatpak"
+msgstr "Flatpak'i Kur"
+
+#: app/src/wropasi/formats/flatpak.py:101
+#: app/src/wropasi/formats/flatpak.py:255
+msgid "Install the Flatpak package manager through your software center"
+msgstr "Yazılım mağazanız aracılığıyla Flatpak paket yöneticisini kurun"
+
+#: app/src/wropasi/formats/flatpak.py:105
+#: app/src/wropasi/formats/flatpak.py:259
+msgid "Flatpak Installation"
+msgstr "Flatpak Kurulumu"
+
+#: app/src/wropasi/formats/flatpak.py:107
+#: app/src/wropasi/formats/flatpak.py:261
+msgid ""
+"No graphical software store or PackageKit service was found.\n"
+"You can install Flatpak via terminal with this command:"
+msgstr ""
+"Grafiksel yazılım mağazası veya PackageKit servisi bulunamadı.\n"
+"Flatpak paketini terminal üzerinden şu komutla kurabilirsiniz:"
+
+#: app/src/wropasi/formats/flatpak.py:143
+#: app/src/wropasi/formats/flatpak.py:297
+msgid "Flatpak is Missing"
+msgstr "Flatpak Kurulu Değil"
+
+#: app/src/wropasi/formats/flatpak.py:145
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is a Flatpak bundle (.flatpak).\n"
+"Linux's favorite universal sandbox runtime is not installed on this machine."
+msgstr ""
+"<b>{name}</b> bir Flatpak paketidir (.flatpak).\n"
+"Linux'un gözdesi evrensel paket yöneticisi Flatpak sisteminizde kurulu değil."
+
+#: app/src/wropasi/formats/flatpak.py:232
+msgid "MIME Handler Took a Nap"
+msgstr "MIME İşleyicisi Şekerleme Yapıyor"
+
+#: app/src/wropasi/formats/flatpak.py:234
+#, python-brace-format
+msgid ""
+"Your system has <b>Flatpak</b> installed, but the desktop didn't route this "
+"<b>{name}</b> reference file properly.\n"
+"PackageKit seems to have more important business to attend to."
+msgstr ""
+"Sisteminizde <b>Flatpak</b> kurulu, ancak masaüstü bu <b>{name}</b> referans "
+"dosyasını doğru yönlendiremedi.\n"
+"Görünüşe göre PackageKit'in size hizmet etmekten çok daha mühim işleri var..."
+
+#: app/src/wropasi/formats/flatpak.py:299
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is a Flatpak reference file (.flatpakref).\n"
+"Linux's favorite universal sandbox runtime is not installed on this machine."
+msgstr ""
+"<b>{name}</b> bir Flatpak referans dosyasıdır (.flatpakref).\n"
+"Linux'un gözdesi evrensel paket yöneticisi Flatpak sisteminizde kurulu değil."
+
+#: app/src/wropasi/formats/snap.py:43
+msgid "Install via Terminal (snap install)"
+msgstr "Terminal ile Kur (snap install)"
+
+#: app/src/wropasi/formats/snap.py:49
+msgid "Run this command in your terminal to install the Snap package:"
+msgstr "Snap paketini terminalde şu komutla kurabilirsiniz:"
+
+#: app/src/wropasi/formats/snap.py:57
+msgid "Snap Package Ready"
+msgstr "Snap Paketi Kurulabilir"
+
+#: app/src/wropasi/formats/snap.py:59
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is a Snap package (.snap).\n"
+"Snap is installed on your system, so you can install this right away."
+msgstr ""
+"<b>{name}</b> bir Snap paketidir (.snap).\n"
+"Sisteminizde Snap kurulu olduğu için bu paketi doğrudan kurabilirsiniz."
+
+#: app/src/wropasi/formats/snap.py:79
+msgid "Install Snap (snapd)"
+msgstr "Snap'i (snapd) Kur"
+
+#: app/src/wropasi/formats/snap.py:80
+msgid "Add Snap package manager support to your system"
+msgstr "Sisteminize Snap paket yöneticisi desteğini kurun"
+
+#: app/src/wropasi/formats/snap.py:84
+msgid "Snap Installation"
+msgstr "Snap Kurulumu"
+
+#: app/src/wropasi/formats/snap.py:86
+msgid ""
+"You can install the Snap package manager via terminal with this command:"
+msgstr ""
+"Snap paket yöneticisini terminal üzerinden şu komutla kurabilirsiniz:"
+
+#: app/src/wropasi/formats/snap.py:120
+msgid "Snapd is Nowhere to be Found"
+msgstr "Snapd Sistemde Bulunamadı"
+
+#: app/src/wropasi/formats/snap.py:122
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is a Snap package (.snap).\n"
+"Your system does not have snapd installed to run it."
+msgstr ""
+"<b>{name}</b> bir Snap paketidir (.snap).\n"
+"Sisteminizde bu paketi çalıştıracak snapd kurulu değil."

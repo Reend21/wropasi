@@ -1,4 +1,4 @@
-# ! GUI App
+# Main GTK4 / Libadwaita user interface.
 
 from __future__ import annotations
 
@@ -14,11 +14,13 @@ gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gdk, Gio, GLib  # noqa: E402
 
 from .constants import APP_ID
+from .i18n import _
 from .system import get_system_info, desktop_install, desktop_uninstall
 from .formats import get_handler, get_unknown_result
 from .formats.base import Action, FormatResult
 
-# ! open the app
+
+# Application class managing lifecycle and single/multi instance behavior
 class WropasiApp(Adw.Application):
     def __init__(self, filepath: str):
         super().__init__(
@@ -31,7 +33,8 @@ class WropasiApp(Adw.Application):
     def _on_activate(self, _app):
         WropasiWindow(application=self, filepath=self.filepath).present()
 
-# ! windows
+
+# Main dialog window presenting package analysis and available actions
 class WropasiWindow(Adw.ApplicationWindow):
     def __init__(self, filepath: str, **kwargs):
         super().__init__(**kwargs)
@@ -39,7 +42,7 @@ class WropasiWindow(Adw.ApplicationWindow):
         self.ext = os.path.splitext(filepath)[1].lower()
         self.system_info = get_system_info()
 
-        # ! get format handler
+        # Resolve format handler for this extension
         handler = get_handler(self.ext)
         if handler is not None:
             self.result = handler.analyze(filepath, self.system_info)
@@ -51,7 +54,6 @@ class WropasiWindow(Adw.ApplicationWindow):
         self.set_resizable(False)
         self._build_ui()
 
-    # ! create ui
     def _build_ui(self):
         tv = Adw.ToolbarView()
         tv.add_top_bar(Adw.HeaderBar())
@@ -73,7 +75,7 @@ class WropasiWindow(Adw.ApplicationWindow):
         self.set_content(tv)
 
     def _render_result(self, box: Gtk.Box, result: FormatResult):
-        # ! situation banner
+        # Header banner with icon, title, and body description
         self._status(
             box,
             result.status.icon_name,
@@ -82,20 +84,22 @@ class WropasiWindow(Adw.ApplicationWindow):
             result.status.body,
         )
 
-        # ! Guide list
+        # Action list guiding the user
         if result.actions:
-            hdr = Gtk.Label(label="What can you do?")
+            hdr = Gtk.Label(label=_("What can you do?"))
             hdr.add_css_class("heading")
             hdr.set_xalign(0)
             box.append(hdr)
+
             lb = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE)
             lb.add_css_class("boxed-list")
             for action in result.actions:
                 lb.append(self._action_row(action))
             box.append(lb)
-        self._close_btn(box, result.close_label, suggested=result.close_suggested)
 
-    # ! UI Helpers
+        close_text = result.close_label or _("Close")
+        self._close_btn(box, close_text, suggested=result.close_suggested)
+
     def _status(self, box, icon_name, css, title, body):
         icon = Gtk.Image.new_from_icon_name(icon_name)
         icon.set_pixel_size(72)
@@ -142,15 +146,14 @@ class WropasiWindow(Adw.ApplicationWindow):
         row.connect("activated", lambda _: self._execute_action(action))
         return row
 
-    # ! Guide actions
     def _execute_action(self, action: Action):
         match action.action_type:
             case "url":
                 self._xdg_open(action.payload)
             case "command":
                 self._show_command_dialog(
-                    action.dialog_heading or "command",
-                    action.dialog_body or "Run this command on terminal",
+                    action.dialog_heading or _("Command"),
+                    action.dialog_body or _("Run this command in your terminal:"),
                     action.payload,
                 )
             case "packagekit_file":
@@ -160,11 +163,11 @@ class WropasiWindow(Adw.ApplicationWindow):
             case "alien":
                 self._exec_alien(action)
 
-    # tries to open the package with packagekit or app center
+    # Attempt to open package file via PackageKit session bus or GUI software store
     def _exec_packagekit_file(self, action: Action):
         abs_path = os.path.abspath(action.payload)
 
-        # ! PackageKit session DBus call
+        # 1. PackageKit session DBus call
         try:
             bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
             bus.call_sync(
@@ -182,7 +185,7 @@ class WropasiWindow(Adw.ApplicationWindow):
         except Exception:
             pass
 
-        # ! App center call
+        # 2. Known software stores
         for store, args in (
             ("gnome-software", ["gnome-software", f"--local-filename={abs_path}"]),
             ("plasma-discover", ["plasma-discover", abs_path]),
@@ -199,18 +202,18 @@ class WropasiWindow(Adw.ApplicationWindow):
                 except OSError:
                     continue
 
-        # ! Fallback / manual
+        # 3. Fallback command dialog
         self._show_command_dialog(
-            action.dialog_heading or "We cant find package manager",
-            action.dialog_body or "You can install the package via terminal",
+            action.dialog_heading or _("Package Manager Not Found"),
+            action.dialog_body or _("You can install the package manually via terminal:"),
             action.fallback_command,
         )
 
-    # Install package with packagekit
+    # Attempt to install package by name via PackageKit session bus or GUI software store
     def _exec_packagekit_install(self, action: Action):
         pkg_name = action.payload
 
-        # ! PackageKit session DBus
+        # 1. PackageKit session DBus
         try:
             bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
             bus.call_sync(
@@ -228,7 +231,7 @@ class WropasiWindow(Adw.ApplicationWindow):
         except Exception:
             pass
 
-        # ! App center
+        # 2. Known software stores
         for store, args in (
             ("gnome-software", ["gnome-software", f"--search={pkg_name}"]),
             ("plasma-discover", ["plasma-discover", "--mode", "search", pkg_name]),
@@ -243,21 +246,21 @@ class WropasiWindow(Adw.ApplicationWindow):
                 except OSError:
                     continue
 
-        # ! appstream:// URI'si
+        # 3. appstream:// URI fallback
         try:
             subprocess.Popen(["xdg-open", f"appstream://{pkg_name}"])
             return
         except OSError:
             pass
 
-        # ! Fallback / manual
+        # 4. Fallback command dialog
         self._show_command_dialog(
-            action.dialog_heading or "Setup",
-            action.dialog_body or "You can install the package via terminal",
+            action.dialog_heading or _("Installation"),
+            action.dialog_body or _("You can install this package via terminal:"),
             action.fallback_command,
         )
 
-    # turn with alien
+    # Show alien package conversion dialog
     def _exec_alien(self, action: Action):
         native_pm = self.system_info.get("native_pm")
         target = "deb" if native_pm in ("dpkg", "apt") else "rpm"
@@ -265,20 +268,19 @@ class WropasiWindow(Adw.ApplicationWindow):
         cmd = f'sudo alien --to-{target} "{fname}"'
 
         self._show_command_dialog(
-            action.dialog_heading or "Alien",
-            action.dialog_body or "Terminal üzerinde şu komutu çalıştırarak paketi dönüştürebilirsiniz:",
+            action.dialog_heading or _("Alien Package Converter"),
+            action.dialog_body or _("Run this in your terminal and pray to the package gods:"),
             cmd,
         )
 
-    # ! Helpers
     def _show_command_dialog(self, heading: str, body_text: str, command: str):
         d = Adw.AlertDialog(
             heading=heading,
             body=f"{body_text}\n\n<b>{command}</b>",
         )
         d.set_body_use_markup(True)
-        d.add_response("copy", "Copy command")
-        d.add_response("ok", "Allright")
+        d.add_response("copy", _("Copy Command"))
+        d.add_response("ok", _("Got it"))
         d.set_response_appearance("copy", Adw.ResponseAppearance.SUGGESTED)
 
         def on_response(_dialog, response_id):
@@ -296,7 +298,8 @@ class WropasiWindow(Adw.ApplicationWindow):
         except OSError:
             pass
 
-# ! CLI
+
+# CLI entry point
 def main():
     if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"):
         print(

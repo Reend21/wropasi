@@ -1,0 +1,8 @@
+app/src/wropasi/app.py
+app/src/wropasi/formats/__init__.py
+app/src/wropasi/formats/base.py
+app/src/wropasi/formats/deb.py
+app/src/wropasi/formats/rpm.py
+app/src/wropasi/formats/appimage.py
+app/src/wropasi/formats/flatpak.py
+app/src/wropasi/formats/snap.py

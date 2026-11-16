@@ -1,7 +1,8 @@
-# ! Format handler registry
+# Format handler registry.
 
 from __future__ import annotations
 
+from ..i18n import _
 from .base import BaseFormatHandler, FormatResult, StatusInfo, Action  # noqa: F401
 from .deb import DebHandler
 from .rpm import RpmHandler
@@ -28,14 +29,19 @@ def get_handler(extension: str) -> BaseFormatHandler | None:
     return _REGISTRY.get(extension.lower())
 
 
-# ! Unknown format
+# Generate fallback result for unknown / unsupported formats.
 def get_unknown_result(ext: str) -> FormatResult:
+    ext_label = ext or _("(no extension)")
     return FormatResult(
         status=StatusInfo(
             "dialog-error-symbolic",
             "error",
-            "Bu ne be?",
-            f"<b>{ext or '(uzantısız)'}</b> formatını tanımıyoruz. Bu bizim eşşekliğimizse "
-            "affola. Ancak bu paketleme sistemi ya çok niş, yada gerçek değil.",
+            _("What on earth is this?"),
+            _(
+                "We don't recognize the <b>{ext}</b> format. If this is our blunder, "
+                "our apologies. But this packaging system is either wildly niche or straight up made up."
+            ).format(ext=ext_label),
         ),
+        close_label=_("Dismiss"),
+        close_suggested=True,
     )

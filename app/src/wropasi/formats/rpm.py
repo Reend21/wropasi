@@ -1,4 +1,6 @@
-# ! RPM format handler.
+# RPM (.rpm) format handler.
+
+from __future__ import annotations
 
 from .base import NativeFormatHandler
 

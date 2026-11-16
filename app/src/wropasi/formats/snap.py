@@ -1,4 +1,4 @@
-# ! Snap format handler.
+# Snap (.snap) format handler.
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import os
 import re
 import urllib.parse
 
+from ..i18n import _
 from .base import (
     BaseFormatHandler,
     Action,
@@ -39,13 +40,13 @@ class SnapHandler(BaseFormatHandler):
 
         actions = [
             Action(
-                title="Terminal ile Kur (snap install)",
+                title=_("Install via Terminal (snap install)"),
                 subtitle=f"snap install --dangerous {os.path.basename(filepath)}",
                 icon_name="utilities-terminal-symbolic",
                 action_type="command",
                 payload=fallback_cmd,
-                dialog_heading="Terminal ile Kurulum",
-                dialog_body="Snap paketini terminalde şu komutla kurabilirsiniz:",
+                dialog_heading=_("Terminal Installation"),
+                dialog_body=_("Run this command in your terminal to install the Snap package:"),
             ),
         ]
 
@@ -53,12 +54,14 @@ class SnapHandler(BaseFormatHandler):
             status=StatusInfo(
                 "emblem-ok-symbolic",
                 "success",
-                "Bu paket sisteminizde çalışabilir.",
-                f"<b>{name}</b> bir Snap paketidir (.snap).\n"
-                f"Sisteminizde Snap kurulu olduğu için bu paketi kurabilirsiniz.",
+                _("Snap Package Ready"),
+                _(
+                    "<b>{name}</b> is a Snap package (.snap).\n"
+                    "Snap is installed on your system, so you can install this right away."
+                ).format(name=name),
             ),
             actions=actions,
-            close_label="Kapat",
+            close_label=_("Close"),
             close_suggested=False,
         )
 
@@ -73,14 +76,14 @@ class SnapHandler(BaseFormatHandler):
         snap_install_cmd = get_native_install_cmd("snapd")
         actions.append(
             Action(
-                title="Snap'i (snapd) Kur",
-                subtitle="Sisteminize Snap paket yöneticisi desteğini kurun",
+                title=_("Install Snap (snapd)"),
+                subtitle=_("Add Snap package manager support to your system"),
                 icon_name="system-software-install-symbolic",
                 action_type="command",
                 payload=snap_install_cmd,
-                dialog_heading="Snap Kurulumu",
-                dialog_body=(
-                    "Snap paket yöneticisini terminal üzerinden şu komutla kurabilirsiniz:"
+                dialog_heading=_("Snap Installation"),
+                dialog_body=_(
+                    "You can install the Snap package manager via terminal with this command:"
                 ),
             )
         )
@@ -88,8 +91,8 @@ class SnapHandler(BaseFormatHandler):
         if system_info.get("has_flatpak"):
             actions.append(
                 Action(
-                    title="Flathub'da Ara",
-                    subtitle="Evrensel yazılım mağzasında paketinizi arayın",
+                    title=_("Search on Flathub"),
+                    subtitle=_("Check the universal sandbox emporium for this app"),
                     icon_name="system-software-install-symbolic",
                     action_type="url",
                     payload=f"https://flathub.org/apps/search?q={urllib.parse.quote(name)}",
@@ -99,8 +102,8 @@ class SnapHandler(BaseFormatHandler):
         native_pm = system_info.get("native_pm")
         actions.append(
             Action(
-                title="Uyumlu sürümü manuel ara",
-                subtitle="Genel ağ üzerinden paketi manuel arayın.",
+                title=_("Search the Web Manually"),
+                subtitle=_("Hunt for a compatible installer across the wild internet"),
                 icon_name="web-browser-symbolic",
                 action_type="url",
                 payload=(
@@ -114,10 +117,12 @@ class SnapHandler(BaseFormatHandler):
             status=StatusInfo(
                 "dialog-warning-symbolic",
                 "warning",
-                "Snap Kurulu Değil",
-                f"<b>{name}</b> bir Snap paketidir (.snap).\n"
-                "Sisteminizde Snap paket yöneticisi (snapd) kurulu değil.",
+                _("Snapd is Nowhere to be Found"),
+                _(
+                    "<b>{name}</b> is a Snap package (.snap).\n"
+                    "Your system does not have snapd installed to run it."
+                ).format(name=name),
             ),
             actions=actions,
-            close_label="İptal",
+            close_label=_("Cancel"),
         )
