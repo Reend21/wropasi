@@ -43,7 +43,7 @@ def _cache_path() -> Path:
     return cache_home / "wropasi" / "pm_cache.json"
 
 
-# discover package mangers in the system and create cache
+# ! discover package mangers in the system and create cache
 def _build_cache() -> dict:
     native_pm: str | None = None
     for pm in ("dnf", "zypper", "apt", "dpkg", "pacman", "rpm"):
@@ -59,14 +59,14 @@ def _build_cache() -> dict:
     }
 
 
-# write cache data
+# ! write cache data
 def _write_cache(data: dict) -> None:
     path = _cache_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data), encoding="utf-8")
 
 
-# read existing cache, if there isnt any, return none
+# ! read existing cache, if there isnt any, return none
 def _read_cache() -> dict | None:
     path = _cache_path()
     if not path.exists():
@@ -81,7 +81,7 @@ def _read_cache() -> dict | None:
         return None
 
 
-# get system info from cache, if there is no cache, create it.
+# ! get system info from cache, if there is no cache, create it.
 def get_system_info() -> dict:
     cache = _read_cache()
     if cache is not None:
@@ -95,7 +95,7 @@ def detect_native_pm() -> str | None:
     return get_system_info()["native_pm"]
 
 
-# return package manager install command
+# ! return package manager install command
 def get_native_install_cmd(pkg: str) -> str:
     if shutil.which("zypper"):
         return f"sudo zypper install {pkg}"
@@ -218,7 +218,7 @@ def desktop_install() -> None:
     print("Setup completed")
 
 
-# remove wropasi from your system
+# ! remove wropasi from your system
 def desktop_uninstall() -> None:
     prefix = _local_prefix()
     targets = [
