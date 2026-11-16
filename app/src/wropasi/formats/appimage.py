@@ -1,8 +1,9 @@
-# AppImage (.appimage) format handler.
+# ! AppImage format handler.
 
 from __future__ import annotations
 
 import os
+import re
 
 from .base import BaseFormatHandler, FormatResult, StatusInfo
 
@@ -14,8 +15,10 @@ class AppImageHandler(BaseFormatHandler):
 
     def extract_name(self, filepath: str) -> str:
         base = os.path.basename(filepath)
-        name, _ = os.path.splitext(base)
-        return name.split("_")[0].split("-")[0]
+        cleaned = re.sub(r"\.appimage$", "", base, flags=re.I)
+        cleaned = re.sub(r"-(x86_64|aarch64|armhf|i686|x64)$", "", cleaned, flags=re.I)
+        parts = re.split(r"-(?=\d)", cleaned)
+        return parts[0]
 
     def analyze(self, filepath: str, system_info: dict) -> FormatResult:
         name = self.extract_name(filepath)

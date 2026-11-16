@@ -1,4 +1,4 @@
-# Format handler'lar için temel sınıflar ve veri yapıları
+# ! base structre for format handling
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 
-# Kullanıcıya gösterilecek durum bilgisi (ikon + başlık + açıklama)
+# ! status info
 @dataclass
 class StatusInfo:
     icon_name: str
@@ -15,15 +15,13 @@ class StatusInfo:
     body: str
 
 
-# Kullanıcıya sunulacak tek bir aksiyon satırı
-# action_type değerleri:
-# "url"                 – payload URL'sini xdg-open ile aç.
-# "command"             – Komutu (payload) gösteren bir diyalog aç.
-# "packagekit_file"     – Dosyayı (payload) PackageKit/mağaza ile açmayı dene,
-#                         başarısız olursa fallback_command'ı göster.
-# "packagekit_install"  – Paket adını (payload) PackageKit/mağaza ile kurmayı dene,
-#                         başarısız olursa fallback_command'ı göster.
-# "alien"               – payload dosyasını alien ile dönüştürme talimatı göster.
+# ! actions
+# ? "url"                 – open payload url with xdg-open
+# ? "command"             – show the payload command
+# ? "packagekit_file"     – open app with the app center, if fail, show fallback dialog
+# ? "packagekit_install"  – install ap with app center, if fail, show fallback dialog
+# ? "alien"               – alien translation
+
 @dataclass
 class Action:
     title: str
@@ -35,10 +33,6 @@ class Action:
     dialog_body: str = ""
     fallback_command: str = ""
 
-
-# Bir format handler'ının analiz sonucu
-# Window bu yapıyı alır ve jenerik olarak render eder:
-# durum bannerı + aksiyon listesi + kapat butonu.
 @dataclass
 class FormatResult:
     status: StatusInfo
@@ -47,54 +41,114 @@ class FormatResult:
     close_suggested: bool = False
 
 
-# Tüm format handler'larının uygulaması gereken soyut temel sınıf
+# ! base format handler structre 
 class BaseFormatHandler(ABC):
     extensions: tuple[str, ...] = ()
     display_name: str = ""
     required_pm: str | None = None
 
-    # Dosyadan uygulama/paket adını çıkarır
+    # ! get app name
     @abstractmethod
     def extract_name(self, filepath: str) -> str:
         ...
 
-    # Dosyayı sistem bilgilerine göre analiz edip sonuç döner
+    # ! format result handler
     @abstractmethod
     def analyze(self, filepath: str, system_info: dict) -> FormatResult:
         ...
 
 
-# Yerel paket yöneticisine bağlı formatlar için ortak temel (deb, rpm, vb.)
-# Eğer required_pm sistemin yerel PM'i ile eşleşiyorsa "uyumlu",
-# değilse "uyumsuz" sonucu üretir; uyumsuz durumda standart aksiyon
-# listesi (Flathub, Snap Store, alien, web arama) sunar.
+# ! PM detection base
 class NativeFormatHandler(BaseFormatHandler):
+    compatible_pms: tuple[str, ...] = ()
+
+    def is_compatible(self, native_pm: str | None) -> bool:
+        if not native_pm:
+            return False
+        if self.compatible_pms:
+            return native_pm in self.compatible_pms
+        return native_pm == self.required_pm
+
     def extract_name(self, filepath: str) -> str:
         import os
+        import re
 
         base = os.path.basename(filepath)
         name, _ = os.path.splitext(base)
-        return name.split("_")[0].split("-")[0]
+        cleaned = re.sub(r"[-.](x86_64|aarch64|armv7hl|armhf|i686|noarch|ppc64le|s390x|x64)$", "", name, flags=re.I)
+        if "_" in cleaned:
+            return cleaned.split("_")[0]
+        parts = re.split(r"-(?=\d)", cleaned)
+        return parts[0]
 
     def analyze(self, filepath: str, system_info: dict) -> FormatResult:
         name = self.extract_name(filepath)
         native_pm = system_info.get("native_pm")
 
-        if native_pm == self.required_pm:
-            return FormatResult(
-                status=StatusInfo(
-                    "emblem-ok-symbolic",
-                    "success",
-                    "Bu paket sisteminizde çalışabilir.",
-                    f"<b>{name}</b> paketi sisteminizle uyumludur.",
-                ),
-                close_label="Peki",
-                close_suggested=True,
-            )
+        if self.is_compatible(native_pm):
+            return self._build_compatible(name, filepath, native_pm, system_info)
 
         return self._build_incompatible(name, filepath, native_pm, system_info)
 
-    # ------------------------------------------------------------------
+    def _build_compatible(
+        self,
+        name: str,
+        filepath: str,
+        native_pm: str | None,
+        system_info: dict,
+    ) -> FormatResult:
+        import os
+
+        if native_pm in ("dpkg", "apt"):
+            fallback_cmd = f'sudo apt install "{filepath}"'
+        elif native_pm == "dnf":
+            fallback_cmd = f'sudo dnf install "{filepath}"'
+        elif native_pm == "zypper":
+            fallback_cmd = f'sudo zypper install "{filepath}"'
+        elif native_pm == "rpm":
+            fallback_cmd = f'sudo rpm -i "{filepath}"'
+        elif native_pm == "pacman":
+            fallback_cmd = f'sudo pacman -U "{filepath}"'
+        else:
+            fallback_cmd = f'pkcon install-local "{filepath}"'
+
+        actions: list[Action] = [
+            Action(
+                title="Yazılım Mağazası ile Aç",
+                subtitle="Dosyayı sistemdeki yazılım mağazasına veya PackageKit arayüzüne yönlendir",
+                icon_name="system-software-install-symbolic",
+                action_type="packagekit_file",
+                payload=filepath,
+                dialog_heading="Yazılım Mağazası / PackageKit Açılamadı",
+                dialog_body=(
+                    "Sisteminizde PackageKit oturum servisi veya grafiksel bir "
+                    "yazılım mağazası başlatılamadı.\n"
+                    "Dosyayı terminalden doğrudan şu komutla kurabilirsiniz:"
+                ),
+                fallback_command=fallback_cmd,
+            ),
+            Action(
+                title="Terminal ile Kur",
+                subtitle=f"{fallback_cmd}",
+                icon_name="utilities-terminal-symbolic",
+                action_type="command",
+                payload=fallback_cmd,
+                dialog_heading="Terminal ile Kurulum",
+                dialog_body="Terminalde şu komutu çalıştırarak paketi doğrudan kurabilirsiniz:",
+            ),
+        ]
+
+        return FormatResult(
+            status=StatusInfo(
+                "emblem-ok-symbolic",
+                "success",
+                "Bu paket sisteminizde çalışabilir.",
+                f"<b>{name}</b> paketi sisteminizle uyumludur.",
+            ),
+            actions=actions,
+            close_label="Kapat",
+            close_suggested=False,
+        )
 
     def _build_incompatible(
         self,
@@ -103,10 +157,12 @@ class NativeFormatHandler(BaseFormatHandler):
         native_pm: str | None,
         system_info: dict,
     ) -> FormatResult:
+        import os
         import urllib.parse
         from ..system import PM_DISPLAY
 
         native_str = PM_DISPLAY.get(native_pm, native_pm or "bilinmiyor")
+        ext = os.path.splitext(filepath)[1].lower()
 
         actions: list[Action] = []
 
@@ -132,11 +188,17 @@ class NativeFormatHandler(BaseFormatHandler):
                 )
             )
 
-        if system_info.get("has_alien"):
+        can_alien = (
+            system_info.get("has_alien")
+            and ext in (".deb", ".rpm")
+            and native_pm in ("dpkg", "apt", "rpm", "dnf", "zypper")
+        )
+        if can_alien:
+            target_str = "DEB" if native_pm in ("dpkg", "apt") else "RPM"
             actions.append(
                 Action(
                     title="alien ile Dönüştür (Önerilemz)",
-                    subtitle=f"Paketi {native_str} formatına çevirin (Sadece son çareniz buysa)",
+                    subtitle=f"Paketi {target_str} formatına çevirin (Sadece son çareniz buysa)",
                     icon_name="system-run-symbolic",
                     action_type="alien",
                     payload=filepath,

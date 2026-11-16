@@ -21,7 +21,10 @@ from .formats.base import Action, FormatResult
 # ! open the app
 class WropasiApp(Adw.Application):
     def __init__(self, filepath: str):
-        super().__init__(application_id=APP_ID)
+        super().__init__(
+            application_id=APP_ID,
+            flags=Gio.ApplicationFlags.NON_UNIQUE,
+        )
         self.filepath = filepath
         self.connect("activate", self._on_activate)
 
@@ -257,16 +260,15 @@ class WropasiWindow(Adw.ApplicationWindow):
     # turn with alien
     def _exec_alien(self, action: Action):
         native_pm = self.system_info.get("native_pm")
-        target = "deb" if native_pm == "dpkg" else "rpm"
+        target = "deb" if native_pm in ("dpkg", "apt") else "rpm"
         fname = os.path.basename(action.payload)
+        cmd = f'sudo alien --to-{target} "{fname}"'
 
-        d = Adw.AlertDialog(
-            heading="Alien",
-            body=f"Run this command on terminal:\n\n"
-            f'sudo alien --to-{target} "{fname}"',
+        self._show_command_dialog(
+            action.dialog_heading or "Alien",
+            action.dialog_body or "Terminal üzerinde şu komutu çalıştırarak paketi dönüştürebilirsiniz:",
+            cmd,
         )
-        d.add_response("ok", "Tamam")
-        d.present(self)
 
     # ! Helpers
     def _show_command_dialog(self, heading: str, body_text: str, command: str):
@@ -296,6 +298,12 @@ class WropasiWindow(Adw.ApplicationWindow):
 
 # ! CLI
 def main():
+    if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"):
+        print(
+            "usage: wropasi <app-path>  |  wropasi --install  |  wropasi --uninstall"
+        )
+        sys.exit(0)
+
     if len(sys.argv) >= 2 and sys.argv[1] == "--install":
         print("> installing wropasi")
         desktop_install()

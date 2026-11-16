@@ -12,11 +12,12 @@ from .constants import APP_ID, DESKTOP_ENTRY, MIME_XML, MIME_TYPES
 
 # ! Package Manager names on gui
 PM_DISPLAY: dict[str, str] = {
+    "apt":    "APT/dpkg",
     "dpkg":   "APT/dpkg",
+    "dnf":    "DNF/RPM",
+    "zypper": "Zypper/RPM",
     "rpm":    "RPM",
     "pacman": "Pacman",
-    "zypper": "Zypper",
-    "dnf":    "DNF",
 }
 
 # ! helpers
@@ -45,7 +46,7 @@ def _cache_path() -> Path:
 # discover package mangers in the system and create cache
 def _build_cache() -> dict:
     native_pm: str | None = None
-    for pm in ("dpkg", "rpm", "pacman", "zypper", "dnf"):
+    for pm in ("dnf", "zypper", "apt", "dpkg", "pacman", "rpm"):
         if shutil.which(pm):
             native_pm = pm
             break
@@ -155,6 +156,13 @@ def desktop_install() -> None:
         encoding="utf-8",
     )
     print(f"  ✓ {desktop_file}")
+
+    # ! MIME definition
+    mime_packages_dir = prefix / "share" / "mime" / "packages"
+    mime_packages_dir.mkdir(parents=True, exist_ok=True)
+    mime_file = mime_packages_dir / f"{APP_ID}.mime.xml"
+    mime_file.write_text(MIME_XML, encoding="utf-8")
+    print(f"  ✓ {mime_file}")
 
     # ! Icon
     icon_candidates = [
