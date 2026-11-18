@@ -67,7 +67,7 @@ and thats it.
 
 ## License
 
-wropasi, licensed with GPL-3.0 License. Chec the LICENSE file for more information.
+wropasi, licensed with GPL-3.0 License. Check the LICENSE file for more information.
 
 Icons that used on logo:
 
