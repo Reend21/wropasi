@@ -53,9 +53,9 @@ From **the agy** (Antigravity CLI) interface:
     - Localization Integration (i18n)
     - All thingies in **po** and **app** dirs
 
-### Which parts did not created by the AI models ib this project?
+### Which parts did not created by the AI models in this project?
 
-    - Basic algorithm of the software. (Inform and Guide)
+    - Basic algorithm of the software (Inform and Guide)
     - Logo
     - This README file
     - Javascript Prototype
