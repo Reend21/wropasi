@@ -6,3 +6,4 @@ app/src/wropasi/formats/rpm.py
 app/src/wropasi/formats/appimage.py
 app/src/wropasi/formats/flatpak.py
 app/src/wropasi/formats/snap.py
+app/src/wropasi/formats/pacman.py

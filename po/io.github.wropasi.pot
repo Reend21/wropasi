@@ -8,74 +8,76 @@ msgid ""
 msgstr ""
 "Project-Id-Version: wropasi 0.1.0\n"
 "Report-Msgid-Bugs-To: reend21@protonmail.com\n"
-"POT-Creation-Date: 2026-11-16 20:25+0300\n"
+"POT-Creation-Date: 2026-11-22 01:45+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: app/src/wropasi/app.py:89
+#: app/src/wropasi/app.py:108
 msgid "What can you do?"
 msgstr ""
 
-#: app/src/wropasi/app.py:100 app/src/wropasi/formats/base.py:158
-#: app/src/wropasi/formats/flatpak.py:85 app/src/wropasi/formats/flatpak.py:240
-#: app/src/wropasi/formats/snap.py:64
+#: app/src/wropasi/app.py:119
 msgid "Close"
 msgstr ""
 
-#: app/src/wropasi/app.py:155
-msgid "Command"
+#: app/src/wropasi/app.py:164
+msgid "⚠ Not recommended"
 msgstr ""
 
-#: app/src/wropasi/app.py:156
-msgid "Run this command in your terminal:"
+#: app/src/wropasi/app.py:184 app/src/wropasi/app.py:343
+msgid "No Terminal Found"
 msgstr ""
 
-#: app/src/wropasi/app.py:207
+#: app/src/wropasi/app.py:185 app/src/wropasi/app.py:344
+msgid "Could not find a terminal emulator. Run this command manually:"
+msgstr ""
+
+#: app/src/wropasi/app.py:235
 msgid "Package Manager Not Found"
 msgstr ""
 
-#: app/src/wropasi/app.py:208
+#: app/src/wropasi/app.py:236
 msgid "You can install the package manually via terminal:"
 msgstr ""
 
-#: app/src/wropasi/app.py:258
+#: app/src/wropasi/app.py:286
 msgid "Installation"
 msgstr ""
 
-#: app/src/wropasi/app.py:259
+#: app/src/wropasi/app.py:287
 msgid "You can install this package via terminal:"
 msgstr ""
 
-#: app/src/wropasi/app.py:271
+#: app/src/wropasi/app.py:299
 msgid "Alien Package Converter"
 msgstr ""
 
-#: app/src/wropasi/app.py:272
+#: app/src/wropasi/app.py:300
 msgid "Run this in your terminal and pray to the package gods:"
 msgstr ""
 
-#: app/src/wropasi/app.py:282
+#: app/src/wropasi/app.py:354
 msgid "Copy Command"
 msgstr ""
 
-#: app/src/wropasi/app.py:283
+#: app/src/wropasi/app.py:355
 msgid "Got it"
 msgstr ""
 
-#: app/src/wropasi/formats/__init__.py:34
+#: app/src/wropasi/formats/__init__.py:55
 msgid "(no extension)"
 msgstr ""
 
-#: app/src/wropasi/formats/__init__.py:39
+#: app/src/wropasi/formats/__init__.py:60
 msgid "What on earth is this?"
 msgstr ""
 
-#: app/src/wropasi/formats/__init__.py:41
+#: app/src/wropasi/formats/__init__.py:62
 #, python-brace-format
 msgid ""
 "We don't recognize the <b>{ext}</b> format. If this is our blunder, our "
@@ -83,26 +85,32 @@ msgid ""
 "made up."
 msgstr ""
 
-#: app/src/wropasi/formats/__init__.py:45
-msgid "Dismiss"
+#: app/src/wropasi/formats/__init__.py:66 app/src/wropasi/formats/base.py:159
+#: app/src/wropasi/formats/base.py:245 app/src/wropasi/formats/flatpak.py:85
+#: app/src/wropasi/formats/flatpak.py:150
+#: app/src/wropasi/formats/flatpak.py:240
+#: app/src/wropasi/formats/flatpak.py:304 app/src/wropasi/formats/snap.py:69
+#: app/src/wropasi/formats/snap.py:135 app/src/wropasi/formats/pacman.py:198
+#: app/src/wropasi/formats/pacman.py:260
+msgid "OK"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:124 app/src/wropasi/formats/flatpak.py:51
+#: app/src/wropasi/formats/base.py:125 app/src/wropasi/formats/flatpak.py:51
 #: app/src/wropasi/formats/flatpak.py:205
 msgid "Open with Software Center"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:125 app/src/wropasi/formats/flatpak.py:52
+#: app/src/wropasi/formats/base.py:126 app/src/wropasi/formats/flatpak.py:52
 #: app/src/wropasi/formats/flatpak.py:206
 msgid "Hand the file over to your GUI software center or PackageKit"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:129 app/src/wropasi/formats/flatpak.py:56
+#: app/src/wropasi/formats/base.py:130 app/src/wropasi/formats/flatpak.py:56
 #: app/src/wropasi/formats/flatpak.py:210
 msgid "Software Center Vanished"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:131 app/src/wropasi/formats/flatpak.py:58
+#: app/src/wropasi/formats/base.py:132 app/src/wropasi/formats/flatpak.py:58
 #: app/src/wropasi/formats/flatpak.py:212
 msgid ""
 "Neither PackageKit session bus nor any graphical software store wanted to "
@@ -110,87 +118,86 @@ msgid ""
 "You can still install the package yourself via terminal:"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:137
+#: app/src/wropasi/formats/base.py:138
 msgid "Install via Terminal"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:142 app/src/wropasi/formats/flatpak.py:69
+#: app/src/wropasi/formats/base.py:143 app/src/wropasi/formats/flatpak.py:69
 #: app/src/wropasi/formats/flatpak.py:223 app/src/wropasi/formats/snap.py:48
 msgid "Terminal Installation"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:143 app/src/wropasi/formats/flatpak.py:70
+#: app/src/wropasi/formats/base.py:144 app/src/wropasi/formats/flatpak.py:70
 #: app/src/wropasi/formats/flatpak.py:224
 msgid "Run this command in your terminal to install the package:"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:151
+#: app/src/wropasi/formats/base.py:152
 msgid "Miracle! This package actually works on your system."
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:153
+#: app/src/wropasi/formats/base.py:154
 #, python-brace-format
 msgid ""
 "<b>{name}</b> is completely compatible with your system. Go ahead and "
 "install it before you change your mind."
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:173
+#: app/src/wropasi/formats/base.py:174
 msgid "unknown"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:181 app/src/wropasi/formats/snap.py:94
+#: app/src/wropasi/formats/base.py:182 app/src/wropasi/formats/snap.py:101
+#: app/src/wropasi/formats/pacman.py:216
 msgid "Search on Flathub"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:182 app/src/wropasi/formats/snap.py:95
+#: app/src/wropasi/formats/base.py:183 app/src/wropasi/formats/snap.py:102
+#: app/src/wropasi/formats/pacman.py:217
 msgid "Check the universal sandbox emporium for this app"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:192 app/src/wropasi/formats/flatpak.py:117
-#: app/src/wropasi/formats/flatpak.py:271
+#: app/src/wropasi/formats/base.py:193 app/src/wropasi/formats/flatpak.py:117
+#: app/src/wropasi/formats/flatpak.py:271 app/src/wropasi/formats/pacman.py:227
 msgid "Search on Snap Store"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:193 app/src/wropasi/formats/flatpak.py:118
-#: app/src/wropasi/formats/flatpak.py:272
+#: app/src/wropasi/formats/base.py:194 app/src/wropasi/formats/flatpak.py:118
+#: app/src/wropasi/formats/flatpak.py:272 app/src/wropasi/formats/pacman.py:228
 msgid "Search Canonical's walled-ish garden for this app"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:209
+#: app/src/wropasi/formats/base.py:210
 msgid "Convert with alien (Desperate times only)"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:211
+#: app/src/wropasi/formats/base.py:212
 #, python-brace-format
 msgid "Mutate the package to {target} format (May work, may summon demons)"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:221 app/src/wropasi/formats/flatpak.py:128
-#: app/src/wropasi/formats/flatpak.py:282 app/src/wropasi/formats/snap.py:105
+#: app/src/wropasi/formats/base.py:223 app/src/wropasi/formats/flatpak.py:128
+#: app/src/wropasi/formats/flatpak.py:282 app/src/wropasi/formats/snap.py:112
+#: app/src/wropasi/formats/pacman.py:237
 msgid "Search the Web Manually"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:222 app/src/wropasi/formats/flatpak.py:129
-#: app/src/wropasi/formats/flatpak.py:283 app/src/wropasi/formats/snap.py:106
+#: app/src/wropasi/formats/base.py:224 app/src/wropasi/formats/flatpak.py:129
+#: app/src/wropasi/formats/flatpak.py:283 app/src/wropasi/formats/snap.py:113
+#: app/src/wropasi/formats/pacman.py:238
 msgid "Hunt for a compatible installer across the wild internet"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:236
+#: app/src/wropasi/formats/base.py:238 app/src/wropasi/formats/pacman.py:252
 msgid "Wrong Package, Silly!"
 msgstr ""
 
-#: app/src/wropasi/formats/base.py:238
+#: app/src/wropasi/formats/base.py:240
 #, python-brace-format
 msgid ""
 "<b>{name}</b> is packaged as <b>{format}</b>, but your system speaks "
 "<b>{native}</b>.\n"
 "Trying to shove this into your system won't end well."
-msgstr ""
-
-#: app/src/wropasi/formats/base.py:243 app/src/wropasi/formats/flatpak.py:150
-#: app/src/wropasi/formats/flatpak.py:304 app/src/wropasi/formats/snap.py:127
-msgid "Cancel"
 msgstr ""
 
 #: app/src/wropasi/formats/appimage.py:33
@@ -232,7 +239,7 @@ msgstr ""
 
 #: app/src/wropasi/formats/flatpak.py:101
 #: app/src/wropasi/formats/flatpak.py:255
-msgid "Install the Flatpak package manager through your software center"
+msgid "Install the Flatpak runtime through your software center"
 msgstr ""
 
 #: app/src/wropasi/formats/flatpak.py:105
@@ -260,15 +267,15 @@ msgid ""
 msgstr ""
 
 #: app/src/wropasi/formats/flatpak.py:232
-msgid "MIME Handler Took a Nap"
+msgid "Flatpak Reference Ready to Install"
 msgstr ""
 
 #: app/src/wropasi/formats/flatpak.py:234
 #, python-brace-format
 msgid ""
-"Your system has <b>Flatpak</b> installed, but the desktop didn't route this "
-"<b>{name}</b> reference file properly.\n"
-"PackageKit seems to have more important business to attend to."
+"<b>{name}</b> is a Flatpak reference file (.flatpakref).\n"
+"Flatpak is installed on your system — this file points to an online source "
+"and can be installed directly."
 msgstr ""
 
 #: app/src/wropasi/formats/flatpak.py:299
@@ -282,45 +289,84 @@ msgstr ""
 msgid "Install via Terminal (snap install)"
 msgstr ""
 
-#: app/src/wropasi/formats/snap.py:49
-msgid "Run this command in your terminal to install the Snap package:"
+#: app/src/wropasi/formats/snap.py:50
+msgid ""
+"Snap local packages require the --dangerous flag since they are not\n"
+"verified by the Snap Store. Run this command in your terminal:"
 msgstr ""
 
-#: app/src/wropasi/formats/snap.py:57
+#: app/src/wropasi/formats/snap.py:60
 msgid "Snap Package Ready"
 msgstr ""
 
-#: app/src/wropasi/formats/snap.py:59
+#: app/src/wropasi/formats/snap.py:62
 #, python-brace-format
 msgid ""
 "<b>{name}</b> is a Snap package (.snap).\n"
-"Snap is installed on your system, so you can install this right away."
-msgstr ""
-
-#: app/src/wropasi/formats/snap.py:79
-msgid "Install Snap (snapd)"
-msgstr ""
-
-#: app/src/wropasi/formats/snap.py:80
-msgid "Add Snap package manager support to your system"
+"Snap is installed on your system, so you can install this right away.\n"
+"Note: local Snap packages need the <b>--dangerous</b> flag because they are "
+"not verified by the Snap Store."
 msgstr ""
 
 #: app/src/wropasi/formats/snap.py:84
+msgid "Install Snap"
+msgstr ""
+
+#: app/src/wropasi/formats/snap.py:85
+msgid "Add Snap package manager support to your system via Software Center"
+msgstr ""
+
+#: app/src/wropasi/formats/snap.py:89
 msgid "Snap Installation"
 msgstr ""
 
-#: app/src/wropasi/formats/snap.py:86
+#: app/src/wropasi/formats/snap.py:91
 msgid ""
-"You can install the Snap package manager via terminal with this command:"
+"No graphical software store or PackageKit service was found.\n"
+"You can install Snap via terminal with this command:"
 msgstr ""
 
-#: app/src/wropasi/formats/snap.py:120
-msgid "Snapd is Nowhere to be Found"
+#: app/src/wropasi/formats/snap.py:127
+msgid "Snap is Not Installed"
 msgstr ""
 
-#: app/src/wropasi/formats/snap.py:122
+#: app/src/wropasi/formats/snap.py:129
 #, python-brace-format
 msgid ""
 "<b>{name}</b> is a Snap package (.snap).\n"
-"Your system does not have snapd installed to run it."
+"Your system does not have Snap installed to run it.\n"
+"Snap is Canonical's universal package format that works across many Linux "
+"distributions."
+msgstr ""
+
+#: app/src/wropasi/formats/pacman.py:178
+msgid "PKGBUILD Detected — Arch Territory"
+msgstr ""
+
+#: app/src/wropasi/formats/pacman.py:180
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is an Arch Linux PKGBUILD source recipe.\n"
+"makepkg is available on your system, so you can build and install it right "
+"here."
+msgstr ""
+
+#: app/src/wropasi/formats/pacman.py:187
+msgid "Build & Install via Terminal (makepkg -si)"
+msgstr ""
+
+#: app/src/wropasi/formats/pacman.py:192
+msgid "Build & Install"
+msgstr ""
+
+#: app/src/wropasi/formats/pacman.py:194
+msgid "Run this command in your terminal to build and install the package:"
+msgstr ""
+
+#: app/src/wropasi/formats/pacman.py:254
+#, python-brace-format
+msgid ""
+"<b>{name}</b> is an Arch Linux PKGBUILD source recipe, but your system does "
+"not use Pacman or makepkg.\n"
+"This can only be built on an Arch-based system."
 msgstr ""
