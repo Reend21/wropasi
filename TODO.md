@@ -2,10 +2,15 @@
 
 # LEGEND
 [ ^DEPRECATED^ ] ---> I give up on this feature or deprecated it.
+
 [ !STABLE! ] ---> This feature added to the software succesfully.
+
 [ ¡UNSTABLE¡ ] --->  This feature did not added to the software succesfully. (not yet)
+
 [ LATER ] --->  This feature will be developing little later on the project.
+
 [ NEXT ] --->  Current target(s) of the project for the next release.
+
 
 ## REPOSITORY
   - [ NEXT ] Socail Preview Image will be added.
