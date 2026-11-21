@@ -46,7 +46,10 @@ class SnapHandler(BaseFormatHandler):
                 action_type="command",
                 payload=fallback_cmd,
                 dialog_heading=_("Terminal Installation"),
-                dialog_body=_("Run this command in your terminal to install the Snap package:"),
+                dialog_body=_(
+                    "Snap local packages require the --dangerous flag since they are not\n"
+                    "verified by the Snap Store. Run this command in your terminal:"
+                ),
             ),
         ]
 
@@ -57,11 +60,13 @@ class SnapHandler(BaseFormatHandler):
                 _("Snap Package Ready"),
                 _(
                     "<b>{name}</b> is a Snap package (.snap).\n"
-                    "Snap is installed on your system, so you can install this right away."
+                    "Snap is installed on your system, so you can install this right away.\n"
+                    "Note: local Snap packages need the <b>--dangerous</b> flag because they are "
+                    "not verified by the Snap Store."
                 ).format(name=name),
             ),
             actions=actions,
-            close_label=_("Close"),
+            close_label=_("OK"),
             close_suggested=False,
         )
 
@@ -76,15 +81,17 @@ class SnapHandler(BaseFormatHandler):
         snap_install_cmd = get_native_install_cmd("snapd")
         actions.append(
             Action(
-                title=_("Install Snap (snapd)"),
-                subtitle=_("Add Snap package manager support to your system"),
-                icon_name="system-software-install-symbolic",
-                action_type="command",
-                payload=snap_install_cmd,
+                title=_("Install Snap"),
+                subtitle=_("Add Snap package manager support to your system via Software Center"),
+                icon_name="folder-download-symbolic",
+                action_type="packagekit_install",
+                payload="snapd",
                 dialog_heading=_("Snap Installation"),
                 dialog_body=_(
-                    "You can install the Snap package manager via terminal with this command:"
+                    "No graphical software store or PackageKit service was found.\n"
+                    "You can install Snap via terminal with this command:"
                 ),
+                fallback_command=snap_install_cmd,
             )
         )
 
@@ -93,7 +100,7 @@ class SnapHandler(BaseFormatHandler):
                 Action(
                     title=_("Search on Flathub"),
                     subtitle=_("Check the universal sandbox emporium for this app"),
-                    icon_name="system-software-install-symbolic",
+                    icon_name="edit-find-symbolic",
                     action_type="url",
                     payload=f"https://flathub.org/apps/search?q={urllib.parse.quote(name)}",
                 )
@@ -117,12 +124,13 @@ class SnapHandler(BaseFormatHandler):
             status=StatusInfo(
                 "dialog-warning-symbolic",
                 "warning",
-                _("Snapd is Nowhere to be Found"),
+                _("Snap is Not Installed"),
                 _(
                     "<b>{name}</b> is a Snap package (.snap).\n"
-                    "Your system does not have snapd installed to run it."
+                    "Your system does not have Snap installed to run it.\n"
+                    "Snap is Canonical's universal package format that works across many Linux distributions."
                 ).format(name=name),
             ),
             actions=actions,
-            close_label=_("Cancel"),
+            close_label=_("OK"),
         )

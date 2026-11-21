@@ -34,6 +34,7 @@ class Action:
     dialog_heading: str = ""
     dialog_body: str = ""
     fallback_command: str = ""
+    danger: bool = False   # marks action as risky / not recommended
 
 
 # Analysis result of a format handler
@@ -155,7 +156,7 @@ class NativeFormatHandler(BaseFormatHandler):
                 ).format(name=name),
             ),
             actions=actions,
-            close_label=_("Close"),
+            close_label=_("OK"),
             close_suggested=False,
         )
 
@@ -180,7 +181,7 @@ class NativeFormatHandler(BaseFormatHandler):
                 Action(
                     title=_("Search on Flathub"),
                     subtitle=_("Check the universal sandbox emporium for this app"),
-                    icon_name="system-software-install-symbolic",
+                    icon_name="edit-find-symbolic",
                     action_type="url",
                     payload=f"https://flathub.org/apps/search?q={urllib.parse.quote(name)}",
                 )
@@ -191,7 +192,7 @@ class NativeFormatHandler(BaseFormatHandler):
                 Action(
                     title=_("Search on Snap Store"),
                     subtitle=_("Search Canonical's walled-ish garden for this app"),
-                    icon_name="system-software-install-symbolic",
+                    icon_name="edit-find-symbolic",
                     action_type="url",
                     payload=f"https://snapcraft.io/search?q={urllib.parse.quote(name)}",
                 )
@@ -210,9 +211,10 @@ class NativeFormatHandler(BaseFormatHandler):
                     subtitle=_(
                         "Mutate the package to {target} format (May work, may summon demons)"
                     ).format(target=target_str),
-                    icon_name="system-run-symbolic",
+                    icon_name="emblem-important-symbolic",
                     action_type="alien",
                     payload=filepath,
+                    danger=True,
                 )
             )
 
@@ -240,5 +242,5 @@ class NativeFormatHandler(BaseFormatHandler):
                 ).format(name=name, format=self.display_name, native=native_str),
             ),
             actions=actions,
-            close_label=_("Cancel"),
+            close_label=_("OK"),
         )

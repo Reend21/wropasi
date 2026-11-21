@@ -82,7 +82,7 @@ class FlatpakBundleHandler(BaseFormatHandler):
                 ).format(name=name),
             ),
             actions=actions,
-            close_label=_("Close"),
+            close_label=_("OK"),
             close_suggested=False,
         )
 
@@ -98,8 +98,8 @@ class FlatpakBundleHandler(BaseFormatHandler):
         actions.append(
             Action(
                 title=_("Install Flatpak"),
-                subtitle=_("Install the Flatpak package manager through your software center"),
-                icon_name="system-software-install-symbolic",
+                subtitle=_("Install the Flatpak runtime through your software center"),
+                icon_name="folder-download-symbolic",
                 action_type="packagekit_install",
                 payload="flatpak",
                 dialog_heading=_("Flatpak Installation"),
@@ -116,7 +116,7 @@ class FlatpakBundleHandler(BaseFormatHandler):
                 Action(
                     title=_("Search on Snap Store"),
                     subtitle=_("Search Canonical's walled-ish garden for this app"),
-                    icon_name="system-software-install-symbolic",
+                    icon_name="edit-find-symbolic",
                     action_type="url",
                     payload=f"https://snapcraft.io/search?q={urllib.parse.quote(name)}",
                 )
@@ -147,7 +147,7 @@ class FlatpakBundleHandler(BaseFormatHandler):
                 ).format(name=name),
             ),
             actions=actions,
-            close_label=_("Cancel"),
+            close_label=_("OK"),
         )
 
 
@@ -227,17 +227,17 @@ class FlatpakRefHandler(BaseFormatHandler):
 
         return FormatResult(
             status=StatusInfo(
-                "dialog-warning-symbolic",
-                "warning",
-                _("MIME Handler Took a Nap"),
+                "emblem-ok-symbolic",
+                "success",
+                _("Flatpak Reference Ready to Install"),
                 _(
-                    "Your system has <b>Flatpak</b> installed, but the desktop didn't route "
-                    "this <b>{name}</b> reference file properly.\n"
-                    "PackageKit seems to have more important business to attend to."
+                    "<b>{name}</b> is a Flatpak reference file (.flatpakref).\n"
+                    "Flatpak is installed on your system — this file points to an online source "
+                    "and can be installed directly."
                 ).format(name=name),
             ),
             actions=actions,
-            close_label=_("Close"),
+            close_label=_("OK"),
         )
 
     def _no_flatpak(
@@ -252,8 +252,8 @@ class FlatpakRefHandler(BaseFormatHandler):
         actions.append(
             Action(
                 title=_("Install Flatpak"),
-                subtitle=_("Install the Flatpak package manager through your software center"),
-                icon_name="system-software-install-symbolic",
+                subtitle=_("Install the Flatpak runtime through your software center"),
+                icon_name="folder-download-symbolic",
                 action_type="packagekit_install",
                 payload="flatpak",
                 dialog_heading=_("Flatpak Installation"),
@@ -270,7 +270,7 @@ class FlatpakRefHandler(BaseFormatHandler):
                 Action(
                     title=_("Search on Snap Store"),
                     subtitle=_("Search Canonical's walled-ish garden for this app"),
-                    icon_name="system-software-install-symbolic",
+                    icon_name="edit-find-symbolic",
                     action_type="url",
                     payload=f"https://snapcraft.io/search?q={urllib.parse.quote(name)}",
                 )
@@ -301,5 +301,5 @@ class FlatpakRefHandler(BaseFormatHandler):
                 ).format(name=name),
             ),
             actions=actions,
-            close_label=_("Cancel"),
+            close_label=_("OK"),
         )
