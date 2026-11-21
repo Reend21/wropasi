@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -22,32 +23,50 @@ from .formats.base import Action, FormatResult
 
 # Application class managing lifecycle and single/multi instance behavior
 class WropasiApp(Adw.Application):
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, test_system_info: dict | None = None):
         super().__init__(
             application_id=APP_ID,
             flags=Gio.ApplicationFlags.NON_UNIQUE,
         )
         self.filepath = filepath
+        self.test_system_info = test_system_info
         self.connect("activate", self._on_activate)
 
     def _on_activate(self, _app):
-        WropasiWindow(application=self, filepath=self.filepath).present()
+        win = WropasiWindow(
+            application=self,
+            filepath=self.filepath,
+            override_system_info=self.test_system_info,
+        )
+        if win.result is None:
+            win.destroy()
+            self.quit()
+            return
+        win.present()
 
 
 # Main dialog window presenting package analysis and available actions
 class WropasiWindow(Adw.ApplicationWindow):
-    def __init__(self, filepath: str, **kwargs):
+    def __init__(self, filepath: str, override_system_info: dict | None = None, **kwargs):
         super().__init__(**kwargs)
         self.filepath = filepath
-        self.ext = os.path.splitext(filepath)[1].lower()
-        self.system_info = get_system_info()
+        self.system_info = override_system_info if override_system_info is not None else get_system_info()
 
-        # Resolve format handler for this extension
-        handler = get_handler(self.ext)
+        # Resolve format handler for this filepath / extension
+        handler = get_handler(filepath)
         if handler is not None:
             self.result = handler.analyze(filepath, self.system_info)
         else:
-            self.result = get_unknown_result(self.ext)
+            self.ext = os.path.splitext(filepath)[1].lower()
+            # Do not trigger a dialog for standard archive files that aren't packages
+            if self.ext in (".zip", ".tar", ".gz", ".bz2", ".xz", ".7z", ".rar", ".zst", ".tgz", ".txz"):
+                self.result = None
+            else:
+                self.result = get_unknown_result(self.ext)
+
+        # Silent exit if format was rejected (e.g. non-Arch tar file)
+        if self.result is None:
+            return
 
         self.set_title("wropasi")
         self.set_default_size(1024, -1)
@@ -137,11 +156,20 @@ class WropasiWindow(Adw.ApplicationWindow):
 
         prefix = Gtk.Image.new_from_icon_name(action.icon_name)
         prefix.set_pixel_size(24)
+        if action.danger:
+            prefix.add_css_class("warning")
         row.add_prefix(prefix)
 
-        chevron = Gtk.Image.new_from_icon_name("go-next-symbolic")
-        chevron.add_css_class("dim-label")
-        row.add_suffix(chevron)
+        if action.danger:
+            badge = Gtk.Label(label=_("⚠ Not recommended"))
+            badge.add_css_class("caption")
+            badge.add_css_class("warning")
+            badge.set_valign(Gtk.Align.CENTER)
+            row.add_suffix(badge)
+        else:
+            chevron = Gtk.Image.new_from_icon_name("go-next-symbolic")
+            chevron.add_css_class("dim-label")
+            row.add_suffix(chevron)
 
         row.connect("activated", lambda _: self._execute_action(action))
         return row
@@ -151,10 +179,10 @@ class WropasiWindow(Adw.ApplicationWindow):
             case "url":
                 self._xdg_open(action.payload)
             case "command":
-                self._show_command_dialog(
-                    action.dialog_heading or _("Command"),
-                    action.dialog_body or _("Run this command in your terminal:"),
+                self._exec_in_terminal(
                     action.payload,
+                    fallback_heading=action.dialog_heading or _("No Terminal Found"),
+                    fallback_body=action.dialog_body or _("Could not find a terminal emulator. Run this command manually:"),
                 )
             case "packagekit_file":
                 self._exec_packagekit_file(action)
@@ -273,6 +301,50 @@ class WropasiWindow(Adw.ApplicationWindow):
             cmd,
         )
 
+    # Try to open a terminal emulator and run the command inside it.
+    # Falls back to a copy-command dialog if no terminal is found.
+    def _exec_in_terminal(self, command: str, fallback_heading: str = "", fallback_body: str = ""):
+        shell_cmd = command + '; echo; read -rp "Press Enter to close..." _'
+        q = shlex.quote(shell_cmd)
+
+        env_term = os.environ.get("TERMINAL", "")
+
+        # Build ordered list of (binary, args) attempts.
+        # Terminals that accept `-- bash -c CMD` pass CMD as a single arg to bash;
+        # terminals using -e expect a quoted shell string.
+        attempts: list[list[str]] = []
+        if env_term:
+            attempts.append([env_term, "-e", f"bash -c {q}"])
+
+        attempts += [
+            ["gnome-terminal", "--",   "bash", "-c", shell_cmd],
+            ["kgx",            "--",   "bash", "-c", shell_cmd],
+            ["konsole",        "-e",   "bash", "-c", shell_cmd],
+            ["xterm",          "-e",   "bash", "-c", shell_cmd],
+            ["alacritty",      "-e",   "bash", "-c", shell_cmd],
+            ["kitty",                  "bash", "-c", shell_cmd],
+            ["foot",                   "bash", "-c", shell_cmd],
+            ["wezterm", "start", "--", "bash", "-c", shell_cmd],
+            ["xfce4-terminal", "-e",   f"bash -c {q}"],
+            ["mate-terminal",  "-e",   f"bash -c {q}"],
+            ["tilix",          "-e",   f"bash -c {q}"],
+        ]
+
+        for args in attempts:
+            if shutil.which(args[0]):
+                try:
+                    subprocess.Popen(args)
+                    return
+                except OSError:
+                    continue
+
+        # No terminal found — fall back to copy dialog
+        self._show_command_dialog(
+            fallback_heading or _("No Terminal Found"),
+            fallback_body or _("Could not find a terminal emulator. Run this command manually:"),
+            command,
+        )
+
     def _show_command_dialog(self, heading: str, body_text: str, command: str):
         d = Adw.AlertDialog(
             heading=heading,
@@ -299,11 +371,108 @@ class WropasiWindow(Adw.ApplicationWindow):
             pass
 
 
+# Test scenarios for --test CLI flag.
+# Each entry: scenario_id -> (fake_filepath, system_info_dict)
+_TEST_SCENARIOS: dict[str, tuple[str, dict]] = {
+    # .deb – native APT/dpkg system → compatible ✅
+    "deb-compatible": (
+        "/tmp/test-pkg_1.0_amd64.deb",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # .deb – DNF system, no alien → incompatible ⚠️
+    "deb-incompatible": (
+        "/tmp/test-pkg_1.0_amd64.deb",
+        {"native_pm": "dnf", "has_flatpak": True,  "has_snap": True,  "has_alien": False},
+    ),
+    # .deb – DNF system WITH alien → incompatible + alien button ⚠️
+    "deb-incompatible-alien": (
+        "/tmp/test-pkg_1.0_amd64.deb",
+        {"native_pm": "dnf", "has_flatpak": True,  "has_snap": False, "has_alien": True},
+    ),
+    # .rpm – native DNF system → compatible ✅
+    "rpm-compatible": (
+        "/tmp/test-pkg-1.0.x86_64.rpm",
+        {"native_pm": "dnf", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # .rpm – APT system, no alien → incompatible ⚠️
+    "rpm-incompatible": (
+        "/tmp/test-pkg-1.0.x86_64.rpm",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": True,  "has_alien": False},
+    ),
+    # .rpm – APT system WITH alien → incompatible + alien button ⚠️
+    "rpm-incompatible-alien": (
+        "/tmp/test-pkg-1.0.x86_64.rpm",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": False, "has_alien": True},
+    ),
+    # .flatpak bundle – flatpak installed → install dialog ✅
+    "flatpak-has": (
+        "/tmp/test-pkg.flatpak",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # .flatpak bundle – flatpak missing ⚠️
+    "flatpak-no": (
+        "/tmp/test-pkg.flatpak",
+        {"native_pm": "apt", "has_flatpak": False, "has_snap": True,  "has_alien": False},
+    ),
+    # .flatpakref – flatpak installed (MIME-route dialog) ⚠️
+    "flatpakref-has": (
+        "/tmp/test-pkg.flatpakref",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # .flatpakref – flatpak missing ⚠️
+    "flatpakref-no": (
+        "/tmp/test-pkg.flatpakref",
+        {"native_pm": "apt", "has_flatpak": False, "has_snap": True,  "has_alien": False},
+    ),
+    # .snap – snapd installed ✅
+    "snap-has": (
+        "/tmp/test-pkg_1.0_amd64.snap",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": True,  "has_alien": False},
+    ),
+    # .snap – snapd missing ⚠️
+    "snap-no": (
+        "/tmp/test-pkg_1.0_amd64.snap",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # .AppImage – always portable ✅
+    "appimage": (
+        "/tmp/TestApp-1.0-x86_64.AppImage",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # Arch Linux (.pkg.tar.zst) – Pacman system → compatible ✅
+    "pacman-compatible": (
+        "/tmp/test-pkg-1.0-1-x86_64.pkg.tar.zst",
+        {"native_pm": "pacman", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # Arch Linux (.pkg.tar.zst) – APT system → incompatible ⚠️
+    "pacman-incompatible": (
+        "/tmp/test-pkg-1.0-1-x86_64.pkg.tar.zst",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": True,  "has_alien": False},
+    ),
+    # PKGBUILD – Pacman / makepkg system → compatible ✅
+    "pkgbuild-compatible": (
+        "/tmp/PKGBUILD",
+        {"native_pm": "pacman", "has_flatpak": True,  "has_snap": False, "has_alien": False},
+    ),
+    # PKGBUILD – DNF system → incompatible ⚠️
+    "pkgbuild-incompatible": (
+        "/tmp/PKGBUILD",
+        {"native_pm": "dnf", "has_flatpak": True,  "has_snap": True,  "has_alien": False},
+    ),
+    # unknown extension ❌
+    "unknown": (
+        "/tmp/test-pkg.xyz",
+        {"native_pm": "apt", "has_flatpak": True,  "has_snap": True,  "has_alien": False},
+    ),
+}
+
+
 # CLI entry point
 def main():
     if len(sys.argv) >= 2 and sys.argv[1] in ("--help", "-h"):
         print(
-            "usage: wropasi <app-path>  |  wropasi --install  |  wropasi --uninstall"
+            "usage: wropasi <app-path>  |  wropasi --install  |  wropasi --uninstall\n"
+            "       wropasi --test <scenario-id>  |  wropasi --test list"
         )
         sys.exit(0)
 
@@ -316,6 +485,30 @@ def main():
         print("removing wropasi <")
         desktop_uninstall()
         sys.exit(0)
+
+    if len(sys.argv) >= 2 and sys.argv[1] == "--test":
+        if len(sys.argv) < 3 or sys.argv[2] == "list":
+            print("Available test scenarios:\n")
+            for sid, (fpath, sinfo) in _TEST_SCENARIOS.items():
+                pm   = sinfo.get("native_pm") or "none"
+                fp   = "flatpak" if sinfo.get("has_flatpak") else "no-flatpak"
+                sn   = "snap"    if sinfo.get("has_snap")    else "no-snap"
+                al   = "alien"   if sinfo.get("has_alien")   else "no-alien"
+                print(f"  {sid:<26}  ({pm}, {fp}, {sn}, {al})")
+            sys.exit(0)
+
+        scenario_id = sys.argv[2]
+        if scenario_id not in _TEST_SCENARIOS:
+            print(
+                f"error: unknown scenario '{scenario_id}'\n"
+                "run 'wropasi --test list' to see available scenarios.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        fake_path, fake_sinfo = _TEST_SCENARIOS[scenario_id]
+        app = WropasiApp(filepath=fake_path, test_system_info=fake_sinfo)
+        sys.exit(app.run(sys.argv[:1]))
 
     if len(sys.argv) < 2:
         print(
