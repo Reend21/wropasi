@@ -68,11 +68,3 @@ and thats it.
 ## License
 
 wropasi, licensed with GPL-3.0 License. Check the LICENSE file for more information.
-
-Icons that used on logo:
-
-[Question icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/question "question icons")
-
-[Alert icons created by Magnific - Flaticon](https://www.flaticon.com/free-icons/alert "alert icons")
-
-[Road signs icons created by Jesus Chavarria - Flaticon](https://www.flaticon.com/free-icons/road-signs "road signs icons")
