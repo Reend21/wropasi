@@ -1,0 +1,24 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+	<style>
+		tspan { white-space:pre } 
+		.s0 { fill: #efe40f } 
+		.s1 { fill: #151500 } 
+		.t2 { font-size: 189px;fill: #efe40f;font-weight: 700;font-family: "HurmitNF-Bold", "Hurmit Nerd Font" } 
+		.t3 { font-size: 146px;fill: #efe40f;font-weight: 700;font-family: "HurmitNF-Bold", "Hurmit Nerd Font" } 
+	</style>
+	<path id="Şekil 2" class="s0" d="m48 39h928c5.52 0 10 4.48 10 10v926c0 5.52-4.48 10-10 10h-928c-5.52 0-10-4.48-10-10v-926c0-5.52 4.48-10 10-10zm358 84l73-24 71 43-53 41-36-39-54 19-20-29-74-19-43 36-49-43 58-29 61 7 41 21z"/>
+	<path id="Şekil 3 copy" fill-rule="evenodd" class="s1" d="m212.56 716.78l276.57-274.49c4.68-4.64 11.96-11.69 16.52-15.99l205.39-193.5c11.82-11.13 21.77-20.2 21.77-19.79v137.85c0 101.77-261.92 408.18-375.79 408.18h-186.01c-0.59 0 18.87-19.75 41.55-42.26z"/>
+	<path id="Şekil 3 copy 2" fill-rule="evenodd" class="s1" d="m360.27 252.75l274.49 276.57c4.64 4.67 11.68 11.95 15.99 16.52l193.49 205.39c11.14 11.81 20.2 21.77 19.79 21.77h-137.84c-101.78 0-408.19-261.92-408.19-375.8v-186.01c0-0.58 19.75 18.87 42.27 41.56z"/>
+	<text id="WRONG" style="transform: matrix(.772,0,0,.772,293.278,428.716)">
+		<tspan x="0" y="0" class="t2">W</tspan><tspan  y="0" class="t2">R</tspan><tspan  y="0" class="t2">O</tspan><tspan  y="0" class="t2">N</tspan><tspan  y="0" class="t2">G
+</tspan>
+	</text>
+	<text id="PACK" transform="translate(338,567)">
+		<tspan x="0" y="0" class="t3">P</tspan><tspan  y="0" class="t3">A</tspan><tspan  y="0" class="t3">C</tspan><tspan  y="0" class="t3">K
+</tspan>
+	</text>
+	<text id="SILLY" transform="translate(301,698)">
+		<tspan x="0" y="0" class="t3">S</tspan><tspan  y="0" class="t3">I</tspan><tspan  y="0" class="t3">L</tspan><tspan  y="0" class="t3">L</tspan><tspan  y="0" class="t3">Y</tspan><tspan  y="0" class="t3">
+</tspan>
+	</text>
+</svg>
